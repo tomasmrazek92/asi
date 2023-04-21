@@ -7,7 +7,7 @@ const BUILD_DIRECTORY = 'dist';
 const PRODUCTION = process.env.NODE_ENV === 'production';
 
 // Config entrypoint files
-const ENTRY_POINTS = ['src/index.ts'];
+const ENTRY_POINTS = ['src/index.js', 'src/legalNav.js'];
 
 // Config dev serving
 const LIVE_RELOAD = !PRODUCTION;
@@ -26,6 +26,7 @@ const context = await esbuild.context({
   define: {
     SERVE_ORIGIN: JSON.stringify(SERVE_ORIGIN),
   },
+  external: ['jquery', 'gsap', 'gsap/ScrollTrigger', 'swiper'],
 });
 
 // Build files in prod
