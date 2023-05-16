@@ -1,6 +1,6 @@
 export const swipers = [];
 
-export const createSwiper = (componentSelector, sliderSelector, classSelector, options) => {
+export const createSwiper = (componentSelector, swiperSelector, classSelector, options) => {
   // Globals
   const arrows = '.slider-arrow';
   const pagination = '.swiper-navigation';
@@ -9,7 +9,7 @@ export const createSwiper = (componentSelector, sliderSelector, classSelector, o
     // Tag Instance
     let index = $(this).index();
     let instanceClass = `${classSelector}_${index}`;
-    $(this).find(sliderSelector).addClass(instanceClass);
+    $(this).find(swiperSelector).addClass(instanceClass);
     $(this).find(arrows).addClass(instanceClass);
     $(this).find(pagination).addClass(instanceClass);
 
@@ -36,7 +36,7 @@ export const createSwiper = (componentSelector, sliderSelector, classSelector, o
     }
 
     // Init Slider
-    let swiper = new Swiper(`${sliderSelector}.${instanceClass}`, swiperOptions);
+    let swiper = new Swiper(`${swiperSelector}.${instanceClass}`, swiperOptions);
 
     // Push to Global for possible references
     // store swiper instance in object using classSelector as key
