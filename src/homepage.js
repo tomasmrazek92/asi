@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon';
+
 $(document).ready(() => {
   // ----- HERO Animation
   ScrollTrigger.matchMedia({
@@ -67,7 +69,7 @@ $(document).ready(() => {
           {
             height: '101svh',
             width: () => {
-              return setVideoWidth();
+              return '101svw';
             },
             y: () => {
               return calculateVideoMove();
@@ -127,18 +129,26 @@ $(document).ready(() => {
         // Project the Time and Date
         var currentDate = new Date();
 
+        // Date
         var month = currentDate.toLocaleString('en', { month: 'long' });
         var day = currentDate.getDate();
         var year = currentDate.getFullYear();
 
-        var hours = currentDate.getHours(); // Get the current hour (0-23)
-        hours = hours % 12 || 12; // Convert to 12-hour format
+        // Time
+        var { DateTime } = luxon;
+        var userLocalTime = luxon.DateTime.local();
+        var convertedTime = userLocalTime.toUTC().toFormat('HHmm');
 
-        var minutes = currentDate.getMinutes();
-        var timeZone = currentDate.toLocaleString('en', { timeZoneName: 'short' }).split(' ')[2];
+        console.log(convertedTime);
 
         $('[hero-date]').text(`${month} ${day}, ${year}`);
-        $('[hero-time]').text(`${hours}${minutes} ${timeZone}`);
+        $('[hero-time]').text(`${convertedTime}[ZULU]`);
+
+        // Mouse Coordinates
+        $(document).mousemove(function (event) {
+          $('[mouseX]').text(event.clientX);
+          $('[mouseY]').text(event.clientY);
+        });
       });
     },
   });
