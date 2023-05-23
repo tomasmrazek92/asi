@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon';
 
+import { createSwiper } from '$utils/globalFunctions';
+
 $(document).ready(() => {
   // ----- HERO Animation
   ScrollTrigger.matchMedia({
@@ -16,9 +18,9 @@ $(document).ready(() => {
             start: 'top top',
             end: 'center top',
             scrub: 0.2,
-            markers: true,
             invalidateOnRefresh: true,
           },
+          paused: true,
         });
 
         // --- Set Section
@@ -39,7 +41,6 @@ $(document).ready(() => {
         function calculateVideoMove() {
           let topHeight = $(heroIntro).find('.section').eq(0).outerHeight();
           topHeight *= -1;
-          console.log(topHeight);
           return topHeight - 4;
         }
 
@@ -47,21 +48,19 @@ $(document).ready(() => {
         setSectionHeight();
 
         // Resize
-        $(window).resize(() => {
+        function handleResize() {
           if ($(window).width() >= 992) {
             setSectionHeight();
-            $(videoBox).width(() => {
-              return setVideoWidth();
-            });
+            $(videoBox).width('100vw');
             $(videoBox).css({
-              transform: `translate(${() => {
-                return calculateVideoMove();
-              }})`,
+              transform: `translateY(${calculateVideoMove()}px)`,
             });
           } else {
-            $(heroIntro, videoBox).attr('style', '');
+            $(heroIntro).add(videoBox).removeAttr('style');
           }
-        });
+        }
+
+        $(window).on('resize', handleResize);
 
         // --- Create the Animation
         tl.fromTo(
@@ -130,18 +129,17 @@ $(document).ready(() => {
         var currentDate = new Date();
 
         // Date
-        var month = currentDate.toLocaleString('en', { month: 'long' });
+        var month = currentDate.toLocaleString('en', { month: 'short' }).toUpperCase(); // Using short month format
         var day = currentDate.getDate();
-        var year = currentDate.getFullYear();
+        var year = currentDate.getFullYear().toString().slice(-2); // Getting the last two digits of the year
 
         // Time
         var { DateTime } = luxon;
         var userLocalTime = luxon.DateTime.local();
         var convertedTime = userLocalTime.toUTC().toFormat('HHmm');
 
-        console.log(convertedTime);
+        $('[hero-date]').text(`${day} ${month} ${year}`);
 
-        $('[hero-date]').text(`${month} ${day}, ${year}`);
         $('[hero-time]').text(`${convertedTime}[ZULU]`);
 
         // Mouse Coordinates
@@ -155,152 +153,102 @@ $(document).ready(() => {
   let main;
 
   // ---- CAPABILITIES
-  const navItems = document.querySelectorAll('.cap_navigation-item');
-  const anchors = $('.cap-anchor_box .cap-anchor')
-    .map(function () {
-      return '#' + $(this).attr('id');
-    })
-    .get();
 
-  const findCurrentAnchorIndex = () => {
-    for (let i = 0; i < navItems.length; i++) {
-      if (navItems[i].classList.contains('w--current')) {
-        return i;
-      }
+  // Elems
+  let items = $('.cap-slide ');
+  let activeClass = 'swiper-slide-active';
+  let itemMask = '.cap_item-mask';
+
+  // Functions
+  function showPar(el) {
+    $(itemMask).hide();
+    setTimeout(function () {
+      $(el).find(itemMask).fadeIn('fast');
+    }, 350);
+  }
+
+  function updateVisual(index) {
+    let visuals = $('.cap_head-visual-inner img');
+
+    // Hide All
+    visuals.hide();
+
+    // Show Current
+    visuals.eq(index).show();
+  }
+
+  function updateItem(el) {
+    let self = $(el);
+    let index = self.index();
+
+    // Wait for Trainsition
+    showPar(self);
+
+    // Remove All
+    items.removeClass(activeClass);
+
+    // Add Current
+    self.addClass(activeClass);
+
+    // Show Visual
+    updateVisual(index);
+  }
+
+  // Actions
+  items.on('click', function (el) {
+    if ($(window).width() >= 992) {
+      updateItem(el);
     }
-    return -1;
-  };
+  });
 
-  const scrollToAnchor = (id) => {
-    document.querySelector(id).scrollIntoView({ behavior: 'smooth' });
-  };
+  /* Swiper */
+  let swiper;
+  let init = false;
 
-  const handleNavItemClick = (item, index, event) => {
-    if (mobile.matches) {
-      event.preventDefault();
-      event.stopPropagation();
-      navItems.forEach((item) => item.classList.remove('w--current'));
-      item.classList.add('w--current');
-      const slideIndex = index;
-      capSwiper.slideTo(slideIndex);
-    }
-  };
+  function swiperMode() {
+    const mobile = window.matchMedia('(min-width: 0px) and (max-width: 991px)');
+    const desktop = window.matchMedia('(min-width: 992px)');
 
-  const mobile = window.matchMedia('(max-width: 991px)');
-  const desktop = window.matchMedia('(min-width: 992px)');
-  let capSwiper = null;
-
-  const swiperMode = () => {
-    const arrowPrev = $('.cap_slider-actions .slider-arrow');
-    arrowPrev.addClass('capabilities-arrow');
-
+    // Disable (for desktop)
     if (desktop.matches) {
-      if (capSwiper) {
-        capSwiper.destroy(true, true);
-        capSwiper = null;
-        $(navItems).removeClass('w--current');
+      if (init) {
+        if (swiper) {
+          swiper.destroy(true, true);
+        }
+        init = false;
       }
-    } else if (mobile.matches) {
-      $(navItems).removeClass('w--current');
-      $(navItems).eq(0).addClass('w--current');
-      if (!capSwiper) {
-        capSwiper = new Swiper('.cap_content', {
+    }
+
+    // Enable (Mobil)
+    else if (mobile.matches) {
+      if (!init) {
+        init = true;
+        swiper = new Swiper('.cap_slider', {
+          // Optional parameters
           slidesPerView: 1,
-          spaceBetween: 24,
-          speed: 250,
-          observer: true,
-          centeredSlides: true,
-          navigation: {
-            prevEl: '.slider-arrow.prev.capabilities-arrow',
-            nextEl: '.slider-arrow.next.capabilities-arrow',
-          },
+          spaceBetween: 16,
           on: {
-            slideChange: () => {
-              navItems.forEach((item, index) => {
-                if (index === capSwiper.activeIndex) {
-                  item.classList.add('w--current');
-                } else {
-                  item.classList.remove('w--current');
-                }
-              });
+            init: () => {
+              updateItem($(items.eq(0)));
+            },
+            slideChangeTransitionStart: (swiper) => {
+              var { activeIndex } = swiper;
+              updateItem(items.eq(activeIndex));
             },
           },
         });
       }
     }
-  };
-
-  // Events
-  window.addEventListener('load', () => {
-    swiperMode();
-  });
-
-  window.addEventListener('resize', () => {
-    swiperMode();
-  });
-
-  navItems.forEach((item, index) => {
-    item.addEventListener('click', (event) => {
-      handleNavItemClick(item, index, event);
-    });
-  });
-
-  // Desktop Arrows Click
-  $('.cap_slider-actions.desktop .slider-arrow.prev').click(() => {
-    const currentAnchorIndex = findCurrentAnchorIndex();
-    if (currentAnchorIndex > 0) {
-      scrollToAnchor(anchors[currentAnchorIndex - 1]);
-    } else {
-      scrollToAnchor(anchors[anchors.length - 1]);
-    }
-  });
-
-  $('.cap_slider-actions.desktop .slider-arrow.next').click(() => {
-    const currentAnchorIndex = findCurrentAnchorIndex();
-    if (currentAnchorIndex < anchors.length - 1) {
-      scrollToAnchor(anchors[currentAnchorIndex + 1]);
-    } else {
-      scrollToAnchor(anchors[0]);
-    }
-  });
-
-  let arrowLeft = $('.w-icon-slider-left');
-  let arrowRight = $('.w-icon-slider-right');
-  let customArrows = $('.about__investor-arrow');
-
-  customArrows.on('click', function (element) {
-    getDirection(element);
-  });
-
-  function getDirection(element) {
-    customArrows.each(function () {
-      let directionID = $(this).attr('id');
-
-      if (directionID === 'link-left') {
-        if (arrowLeft.is(':hidden')) {
-          $(this).hide();
-        } else {
-          $(this).show();
-        }
-      }
-
-      if (directionID === 'link-right') {
-        if (arrowRight.is(':hidden')) {
-          $(this).hide();
-        } else {
-          $(this).show();
-        }
-      }
-    });
-
-    let clickedDirection = $(element).attr('id');
-    if (clickedDirection === 'link-left') {
-      arrowLeft.click();
-    }
-    if (clickedDirection === 'link-right') {
-      arrowRight.click();
-    }
   }
 
-  getDirection();
+  /* On Resize*/
+  window.addEventListener('resize', function () {
+    swiperMode();
+  });
+
+  // On Load
+  window.addEventListener('load', function () {
+    items.eq(0).click();
+    swiperMode();
+  });
 });

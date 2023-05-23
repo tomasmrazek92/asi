@@ -6,6 +6,7 @@ const navbar = '.navbar_wrapper';
 const menuLinksBox = '.nav_links';
 const menuLinks = '.nav_links-inner';
 const menuLinksItems = '.nav_link';
+const dropDownTitle = '[nav-description]';
 const dropDownDesc = '.nav_dropdown-menu_description p';
 const menuButton = '.nav_ham';
 
@@ -66,35 +67,40 @@ window.onscroll = () => {
 // Dropdown Open
 $(document).on('click', function (event) {
   var nav_dropdown = '.nav_dropdown';
-  console.log($(event.target));
-  if (
-    (!$(event.target).is(nav_dropdown) && !$(event.target).parents().is(nav_dropdown)) ||
-    $(event.target).closest(nav_dropdown).find('.w-dropdown-toggle').hasClass('w--open')
-  ) {
-    $(navbar).removeClass('open');
-    return;
-  }
+  // Click outside of menu
+  setTimeout(function () {
+    if ($('.w-dropdown-toggle').hasClass('w--open')) {
+      $(navbar).addClass('open');
+    } else {
+      $(navbar).removeClass('open');
+    }
+  }, 10); // Set the timeout duration (in milliseconds) as
 
+  /*
   if (!$(navbar).hasClass('pinned')) {
     $(navbar).addClass('open');
   }
+  */
 });
 
 // Dropdown Texts
 $('.nav_dropdown-menu_links')
   .find(menuLinksItems)
   .on('mouseenter', function () {
-    // Find the index of the current menu link
+    // Find the index of the current menu link and text
     var currentIndex = $(this).index();
-    console.log(currentIndex);
+    var name = $(this).children('div').eq(0).children().eq(0).text();
 
-    // Find the corresponding p tag inside nav_dropdown-menu_description
-    var pTag = $(this).closest('.nav_dropdown-menu').find(dropDownDesc).eq(currentIndex);
-    console.log(pTag);
+    // Find the corresponding text inside nav_dropdown-menu_description
+    var closestMenu = $(this).closest('.nav_dropdown-menu');
+    var descriptions = closestMenu.find(dropDownDesc);
+    var title = closestMenu.find(dropDownTitle);
+    var pTag = descriptions.eq(currentIndex);
 
     // Hide all p tags and fadeIn the current index
-    $(dropDownDesc).hide();
-    pTag.fadeTo('fast', 1);
+    $(descriptions).hide();
+    title.text(name);
+    $(pTag, title).fadeTo('fast', 1);
   });
 
 // -- Functions
