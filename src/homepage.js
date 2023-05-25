@@ -22,7 +22,6 @@ $(document).ready(() => {
             scrub: 0.2,
             invalidateOnRefresh: true,
           },
-          paused: true,
         });
 
         // --- Set Section
@@ -119,7 +118,17 @@ $(document).ready(() => {
         tl.fromTo(
           '[hero-intro-move]',
           {
-            y: '5rem',
+            y: '10rem',
+          },
+          {
+            y: '0',
+          },
+          '<'
+        );
+        tl.fromTo(
+          '[hero-label-move]',
+          {
+            y: '2rem',
           },
           {
             y: '0',
@@ -135,14 +144,23 @@ $(document).ready(() => {
         var day = currentDate.getDate();
         var year = currentDate.getFullYear().toString().slice(-2); // Getting the last two digits of the year
 
+        $('[dateDay]').text(day);
+        $('[dateMonth]').text(month);
+        $('[dateYear]').text(year);
+
         // Time
         var { DateTime } = luxon;
-        var userLocalTime = luxon.DateTime.local();
-        var convertedTime = userLocalTime.toUTC().toFormat('HHmm');
 
-        $('[hero-date]').text(`${day} ${month} ${year}`);
+        function updateTime() {
+          var userLocalTime = DateTime.local();
+          var convertedTime = userLocalTime.toUTC().toFormat('HHmm');
+          $('[dataTime]').text(convertedTime);
+        }
 
-        $('[hero-time]').text(`${convertedTime}[ZULU]`);
+        // Load
+        updateTime();
+        // Real Time
+        setInterval(updateTime, 30000);
 
         // Mouse Coordinates
         $(document).mousemove(function (event) {
@@ -152,10 +170,24 @@ $(document).ready(() => {
       });
     },
   });
+
+  // Init Reveal
+  if (window.innerWidth >= 992) {
+    $('.hero-intro_wrap').css('color', '#333A47');
+    $('.hero-intro_wrap').fadeTo('fast', 1, function () {
+      $('.preloader-div').hide();
+    });
+  }
+
+  // Video Load
+  $('.header01_visual-box video').on('play', function () {
+    console.log('Loaded');
+    $(this).fadeTo(1000, 1); // 1000 is duration in milliseconds
+  });
+
   let main;
 
   // ---- CAPABILITIES
-
   // Elems
   const responsive = '(min-width: 992px)';
   let isInitialized = false;

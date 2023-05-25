@@ -1,4 +1,5 @@
 // ------ MENU
+gsap.registerPlugin(ScrollTrigger);
 
 // -- Base
 var menuOpenAnim = false;
