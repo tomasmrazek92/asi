@@ -13,6 +13,7 @@ const ENTRY_POINTS = [
   'src/swipers.js',
   'src/legalNav.js',
   'src/index.js',
+  'src/flyways.js',
 ];
 
 // Config dev serving

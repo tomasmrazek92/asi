@@ -1,1 +1,1 @@
-"use strict";(()=>{var e=document.getElementsByTagName("a"),o=window.location.hostname;for(t=0;t<e.length;t++)a=e[t],r=a.hostname,r!==o&&a.setAttribute("target","_blank");var a,r,t;})();
+"use strict";(()=>{$(document).ready(()=>{for(var t=document.getElementsByTagName("a"),n=window.location.hostname,a=0;a<t.length;a++){var e=t[a],r=e.hostname;r!==n&&e.setAttribute("target","_blank")}});})();

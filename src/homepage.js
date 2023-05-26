@@ -5,7 +5,7 @@ import { createSwiper } from '$utils/globalFunctions';
 $(document).ready(() => {
   gsap.registerPlugin(ScrollTrigger);
 
-  // ----- HERO Animation
+  // --- HERO Animation
   ScrollTrigger.matchMedia({
     // Have the animation only on desktop
     '(min-width: 992px)': function () {
@@ -135,6 +135,9 @@ $(document).ready(() => {
           },
           '<'
         );
+        tl.to('.header01_video-overlay', {
+          opacity: 0,
+        });
 
         // Project the Time and Date
         var currentDate = new Date();
@@ -180,10 +183,20 @@ $(document).ready(() => {
   }
 
   // Video Load
-  $('.header01_visual-box video').on('play', function () {
-    console.log('Loaded');
-    $(this).fadeTo(1000, 1); // 1000 is duration in milliseconds
-  });
+  var $video = $('.header01_visual-box video');
+  var fadeDuration = 1000; // 1000 milliseconds
+
+  $video
+    .on('play', function () {
+      console.log('Loaded');
+      $video.fadeTo(fadeDuration, 1);
+    })
+    .one('timeupdate', function () {
+      setTimeout(function () {
+        console.log('Timeout triggered');
+        $video.fadeTo(fadeDuration, 1);
+      }, 3000); // 3000 milliseconds (3 seconds)
+    });
 
   let main;
 
@@ -223,22 +236,24 @@ $(document).ready(() => {
     }
     const currentTab = tabLinks.filter('.' + activeClass);
     currentTab.find(progressLine).animate({ width: '100%' }, duration, function () {
-      // Reset
-      resetTabs();
+      if (shouldAnimate) {
+        // Reset
+        resetTabs();
 
-      // Add
-      const currentIndex = currentTab.index();
-      let nextIndex = currentIndex >= tabLinks.length - 1 ? 0 : currentIndex + 1;
+        // Add
+        const currentIndex = currentTab.index();
+        let nextIndex = currentIndex >= tabLinks.length - 1 ? 0 : currentIndex + 1;
 
-      // Ensure that the nextIndex is not the same as the currentIndex
-      if (nextIndex === currentIndex) {
-        nextIndex = currentIndex >= tabLinks.length - 2 ? 0 : currentIndex + 2;
+        // Ensure that the nextIndex is not the same as the currentIndex
+        if (nextIndex === currentIndex) {
+          nextIndex = currentIndex >= tabLinks.length - 2 ? 0 : currentIndex + 2;
+        }
+
+        // Switch Tabs
+        tabLinks.eq(nextIndex).addClass(activeClass);
+        switchTab();
+        updateVisual(nextIndex);
       }
-
-      // Switch Tabs
-      tabLinks.eq(nextIndex).addClass(activeClass);
-      updateVisual(nextIndex);
-      switchTab();
     });
   }
 
@@ -251,11 +266,13 @@ $(document).ready(() => {
 
     // User Click
     tabLinks.on('click', function () {
-      const nextIndex = $(this).index();
-      stopAnimation();
-      $(this).addClass(activeClass);
-      $(this).find(progressLine).animate({ width: '100%' }, 200);
-      updateVisual(nextIndex);
+      if ($(window).width() >= 992) {
+        const nextIndex = $(this).index();
+        stopAnimation();
+        $(this).addClass(activeClass);
+        $(this).find(progressLine).animate({ width: '100%' }, 200);
+        updateVisual(nextIndex);
+      }
     });
   };
 
@@ -338,7 +355,9 @@ $(document).ready(() => {
           autoplay: {
             delay: duration,
           },
+          loop: true,
           observer: true,
+          slideToClickedSlide: true,
           on: {
             init: (swiperInstance) => {
               handleSwiperSlide(swiperInstance);
