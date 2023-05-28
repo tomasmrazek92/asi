@@ -99,6 +99,15 @@ $(document).ready(() => {
       } else {
         firstLink.removeClass('active');
       }
+      gsap.timeline().fromTo(
+        $(this).closest('.w-dropdown').find('.nav_dropdown-list'),
+        { css: { minHeight: '33rem' } },
+        {
+          css: { minHeight: '28rem' },
+          duration: 0.5,
+          ease: Power2.easeOut,
+        }
+      );
     }
     // Check window width on window resize
     $('.w-dropdown-toggle').on('click', handleDropdownClick);
