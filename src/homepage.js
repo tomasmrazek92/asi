@@ -18,7 +18,7 @@ $(document).ready(() => {
           scrollTrigger: {
             trigger: $(this),
             start: 'top top',
-            end: 'center top',
+            end: 'bottom top',
             scrub: 0.2,
             invalidateOnRefresh: true,
           },
