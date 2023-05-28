@@ -22,7 +22,7 @@ $(document).ready(() => {
         tl.fromTo(
           ['.flyway-hero_bg', '.navbar'],
           {
-            css: { maxWidth: '100vw' },
+            css: { maxWidth: '100svw' },
           },
           {
             css: { maxWidth: '144rem' },

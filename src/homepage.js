@@ -233,7 +233,7 @@ $(document).ready(() => {
     // Update Text
     setTimeout(function () {
       tabLinks.eq(index).find(itemMask).fadeTo('fast', 1);
-    }, 350);
+    }, 150);
   }
 
   // Tab Logic
