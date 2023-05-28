@@ -196,14 +196,12 @@ $(document).ready(() => {
 
   $video
     .on('play', function () {
-      console.log('Loaded');
       $video.fadeTo(fadeDuration, 1);
     })
     .one('timeupdate', function () {
       setTimeout(function () {
-        console.log('Timeout triggered');
         $video.fadeTo(fadeDuration, 1);
-      }, 3000); // 3000 milliseconds (3 seconds)
+      }, 1000);
     });
 
   let main;
