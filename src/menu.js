@@ -76,7 +76,7 @@ $(document).ready(() => {
       } else {
         $(navbar).add('body').removeClass('open');
       }
-    }, 10);
+    }, 50);
 
     /*
   if (!$(navbar).hasClass('pinned')) {
@@ -101,10 +101,10 @@ $(document).ready(() => {
       }
       gsap.timeline().fromTo(
         $(this).closest('.w-dropdown').find('.nav_dropdown-list'),
-        { css: { minHeight: '33rem' } },
+        { css: { minHeight: '25rem' } },
         {
           css: { minHeight: '28rem' },
-          duration: 0.5,
+          duration: 0.75,
           ease: Power2.easeOut,
         }
       );

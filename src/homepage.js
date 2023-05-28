@@ -195,14 +195,16 @@ $(document).ready(() => {
   var fadeDuration = 1000; // 1000 milliseconds
 
   $video
-    .on('play', function () {
-      $video.fadeTo(fadeDuration, 1);
+    .on('canplay', function () {
+      $video.fadeTo(fadeDuration, 1); // Fade in the video when it is ready to play
     })
     .one('timeupdate', function () {
       setTimeout(function () {
         $video.fadeTo(fadeDuration, 1);
       }, 1000);
     });
+
+  $video.get(0).play(); // Trigger the play event manually
 
   let main;
 
