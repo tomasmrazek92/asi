@@ -89,7 +89,7 @@ $(document).ready(() => {
           '.nav',
           {
             color: 'rgba(255, 255, 255, 1)',
-            borderColor: 'rgba(234, 236, 240, 0)',
+            borderColor: 'rgba(225, 228, 234, 0)',
             backgroundColor: 'rgba(255, 255, 255, 0)',
           },
           {
@@ -98,7 +98,7 @@ $(document).ready(() => {
                 color: 'rgba(51, 58, 71, 1)',
               },
               '50%': {
-                borderColor: 'rgba(234, 236, 240, 1)',
+                borderColor: 'rgba(225, 228, 234, 1)',
                 backgroundColor: 'rgba(255, 255, 255, 1)',
               },
             },
@@ -175,12 +175,20 @@ $(document).ready(() => {
   });
 
   // Init Reveal
-  if (window.innerWidth >= 992) {
-    $('.hero-intro_wrap').css('color', '#333A47');
-    $('.hero-intro_wrap').fadeTo('fast', 1, function () {
+  function initReveal() {
+    if (window.innerWidth >= 992) {
+      $('.hero-intro_wrap').css('color', '#333A47');
+      $('.hero-intro_wrap').fadeTo('fast', 1, function () {
+        $('.preloader-div').hide();
+      });
+    } else {
+      $('.hero-intro_wrap').css('opacity', '1');
       $('.preloader-div').hide();
-    });
+    }
   }
+
+  $(window).on('resize', initReveal);
+  initReveal();
 
   // Video Load
   var $video = $('.header01_visual-box video');
@@ -210,12 +218,13 @@ $(document).ready(() => {
   const activeClass = 'swiper-slide-active';
   const progressLine = $('.cap_item-progress-line');
   const itemMask = '.cap_item-mask';
-  let visuals = $('.cap_head-visual-inner img');
+  let visuals = $('.cap_head-visual-inner .image');
   const duration = 5000;
   let tabTimeline = gsap.timeline({ paused: true });
 
   // Visual
   function updateVisual(index) {
+    console.log(index);
     // Hide All
     visuals.hide();
     $(itemMask).hide();
@@ -324,14 +333,15 @@ $(document).ready(() => {
 
     function handleSwiperSlide(swiperInstance) {
       // Get Active Indexs
-      const { activeIndex } = swiperInstance;
+      const { realIndex, activeIndex } = swiperInstance;
 
       // Update Visual
-      updateVisual(activeIndex);
+      updateVisual(realIndex);
 
       // Run ProgressBar
       progressLine.stop(true, true);
       progressLine.css('width', '0');
+      console.log($(swiperInstance.slides[realIndex]));
       $(swiperInstance.slides[activeIndex]).find(progressLine).animate({ width: '100%' }, duration);
     }
 
@@ -359,11 +369,13 @@ $(document).ready(() => {
           observer: true,
           slideToClickedSlide: true,
           on: {
-            init: (swiperInstance) => {
-              handleSwiperSlide(swiperInstance);
+            init: function () {
+              console.log(this);
+              handleSwiperSlide(this);
             },
-            transitionEnd: (swiperInstance) => {
-              handleSwiperSlide(swiperInstance);
+            realIndexChange: function () {
+              console.log('Change');
+              handleSwiperSlide(this);
             },
           },
         });

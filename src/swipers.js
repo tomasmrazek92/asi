@@ -41,8 +41,6 @@ $(document).ready(() => {
   if ($('.platform-prev_component').length) {
     createSwiper('.platform-prev_component', '.platform-prev_slider', 'platprevs-swiper', {
       slidesPerView: 'auto',
-      spaceBetween: 0,
-      loop: true,
     });
   }
 });

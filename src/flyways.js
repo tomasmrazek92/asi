@@ -15,7 +15,6 @@ $(document).ready(() => {
             end: 'center top',
             scrub: 0.2,
             invalidateOnRefresh: true,
-            markers: true,
           },
         });
 

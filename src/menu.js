@@ -66,7 +66,7 @@ $(document).ready(() => {
     }
   };
 
-  // Add open class to navbar if dropdown is open
+  // Add "open" class to navbar if dropdown is open
   $(document).on('click', function (event) {
     var nav_dropdown = '.nav_dropdown';
     // Click outside of menu
@@ -89,7 +89,11 @@ $(document).ready(() => {
   $(document).ready(function () {
     // Function to handle the dropdown click
     function handleDropdownClick() {
-      let firstLink = $(this).find('.nav_dropdown-menu_links').find(menuLinksItems).eq(0);
+      let firstLink = $(this)
+        .closest('.w-dropdown')
+        .find('.nav_dropdown-menu_links')
+        .find(menuLinksItems)
+        .eq(0);
       if ($(window).width() >= 992) {
         firstLink.addClass('active');
       } else {
@@ -97,7 +101,7 @@ $(document).ready(() => {
       }
     }
     // Check window width on window resize
-    $('.nav_dropdown').on('click', handleDropdownClick);
+    $('.w-dropdown-toggle').on('click', handleDropdownClick);
   });
 
   // Dropdown Texts
