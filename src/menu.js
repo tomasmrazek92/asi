@@ -20,6 +20,9 @@ $(document).ready(() => {
         onComplete: () => {
           disableScroll();
         },
+        onReverseComplete: () => {
+          $(navbar).removeClass('open');
+        },
       })
       .fromTo(menuLinksBox, { display: 'none' }, { display: 'flex' }, '<')
       .fromTo(menuLinks, { yPercent: -100 }, { yPercent: 0 }, '<');
@@ -68,21 +71,16 @@ $(document).ready(() => {
 
   // Add "open" class to navbar if dropdown is open
   $(document).on('click', function (event) {
-    var nav_dropdown = '.nav_dropdown';
-    // Click outside of menu
-    setTimeout(function () {
-      if ($('.w-dropdown-toggle').hasClass('w--open')) {
-        $(navbar).add('body').addClass('open');
-      } else {
-        $(navbar).add('body').removeClass('open');
-      }
-    }, 50);
-
-    /*
-  if (!$(navbar).hasClass('pinned')) {
-    $(navbar).addClass('open');
-  }
-  */
+    if ($(window).width() >= 992) {
+      // Click outside of menu
+      setTimeout(function () {
+        if ($('.w-dropdown-toggle').hasClass('w--open')) {
+          $(navbar).add('body').addClass('open');
+        } else {
+          $(navbar).add('body').removeClass('open');
+        }
+      }, 20);
+    }
   });
 
   // Dropdown Link Click Desktop
@@ -145,6 +143,7 @@ $(document).ready(() => {
     if (!menuOpenAnim) {
       navReveal.play();
       hamAnim.play();
+      $(navbar).addClass('open');
     } else {
       navReveal.reverse();
       hamAnim.reverse();
