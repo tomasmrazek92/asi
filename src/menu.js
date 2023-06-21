@@ -131,7 +131,7 @@ $(document).ready(() => {
   });
 
   // Check if open first or current dropdown item
-  $(dropdownItem).on('click', handleDropdownClick);
+  $(dropdownItem).not('.nav_dropdown-part .nav_link').on('click', handleDropdownClick);
 
   // Dropdown Texts
   $('.nav_dropdown-menu_links')
@@ -164,8 +164,8 @@ $(document).ready(() => {
   // Handle the Menu Hamburger
   function menuToggle() {
     var tl = new TimelineMax({ paused: true });
-    tl.fromTo($(menuButton).find('.nav_ham-line').eq(0), 0.2, { y: '0' }, { y: '4' })
-      .fromTo($(menuButton).find('.nav_ham-line').eq(2), 0.2, { y: '0' }, { y: '-4' }, '<')
+    tl.fromTo($(menuButton).find('.nav_ham-line').eq(0), 0.2, { y: '0' }, { y: '6' })
+      .fromTo($(menuButton).find('.nav_ham-line').eq(2), 0.2, { y: '0' }, { y: '-6' }, '<')
       .fromTo(
         $(menuButton).find('.nav_ham-line').eq(1),
         0.2,
@@ -207,7 +207,6 @@ $(document).ready(() => {
   }
   // Handle the dropdown click
   function handleDropdownClick() {
-    console.log('fire');
     let menuLinks = $(this).find('.nav_dropdown-menu_links').find(menuLinksItems);
     let currentItem = menuLinks.filter('.w--current');
     let firstLink = menuLinks.eq(0);
