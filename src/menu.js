@@ -120,6 +120,7 @@ $(document).ready(() => {
       }, duration / 2); // Halfway through the animation
     } else {
       $(menuLinksItems).add(dropdownBox).removeClass('w--open');
+      $('body').removeClass('open');
     }
   }
 
