@@ -105,15 +105,21 @@ $(document).ready(() => {
   // Close the dropdown if clicked outside
   function closeNavDropdown() {
     let list = $(dropdownBox).find('.nav_dropdown-list:visible');
-    $(menuLinksItems).add(dropdownBox).removeClass('w--open');
+    let duration = 350;
     if ($(window).width() >= 992) {
       $(list)
-        .animate({ opacity: 0, minHeight: '25rem' }, 350, function () {
-          dropdownOpen = false;
-          $(navbar).add('body').removeClass('open');
+        .animate({ opacity: 0, minHeight: '25rem' }, duration, function () {
           $(list).attr('style', '');
         })
         .css('overflow', 'visible');
+
+      setTimeout(function () {
+        dropdownOpen = false;
+        $(menuLinksItems).add(dropdownBox).removeClass('w--open');
+        $(navbar).add('body').removeClass('open');
+      }, duration / 2); // Halfway through the animation
+    } else {
+      $(menuLinksItems).add(dropdownBox).removeClass('w--open');
     }
   }
 
