@@ -129,8 +129,8 @@ $(document).ready(() => {
     }
   });
 
-  // Check window width on window resize
-  $('.w-dropdown-toggle').on('click', handleDropdownClick);
+  // Check if open first or current dropdown item
+  $(dropdownItem).on('click', handleDropdownClick);
 
   // Dropdown Texts
   $('.nav_dropdown-menu_links')
@@ -206,13 +206,10 @@ $(document).ready(() => {
   }
   // Handle the dropdown click
   function handleDropdownClick() {
-    let menuLinks = $(this)
-      .closest('.w-dropdown')
-      .find('.nav_dropdown-menu_links')
-      .find(menuLinksItems);
+    console.log('fire');
+    let menuLinks = $(this).find('.nav_dropdown-menu_links').find(menuLinksItems);
     let currentItem = menuLinks.filter('.w--current');
     let firstLink = menuLinks.eq(0);
-    console.log(currentItem);
     if ($(window).width() >= 992) {
       if (currentItem.length === 0) {
         console.log(firstLink);
@@ -226,30 +223,5 @@ $(document).ready(() => {
       firstLink.removeClass('active');
       currentItem.removeClass('active');
     }
-    dropdownAnimation($(this));
   }
-
-  const dropdownAnimation = (elem) => {
-    if (!dropdownOpen) {
-      return gsap.timeline().fromTo(
-        $(elem).closest('.w-dropdown').find('.nav_dropdown-list'),
-        { css: { minHeight: '25rem' } },
-        {
-          css: { minHeight: '28rem' },
-          duration: 0.75,
-          ease: Power2.easeOut,
-        }
-      );
-    }
-
-    return gsap.timeline().to(
-      $(elem).closest('.w-dropdown').find('.nav_dropdown-list'),
-      { css: { minHeight: '25rem' } },
-      {
-        css: { minHeight: '28rem' },
-        duration: 0.75,
-        ease: Power2.easeOut,
-      }
-    );
-  };
 });
