@@ -10,6 +10,7 @@ $(document).ready(() => {
   const menuLinks = '.nav_links-inner';
   const menuLinksItems = '.nav_link';
   const dropdownItem = '.nav_dropdown';
+  const drodownLink = dropdownItem + '>' + menuLinksItems;
   const dropdownBox = ' .nav_dropdown-menu-box';
   const dropDownTitle = '[nav-description]';
   const dropDownDesc = '.nav_dropdown-menu_description p';
@@ -74,31 +75,31 @@ $(document).ready(() => {
 
   // Toggle state for .nav_dropdown click
   function toggleNavDropdownState(self, state) {
-    const link = self.find('> .nav_link');
-    const menu = self.find(dropdownBox);
+    const link = self.closest(dropdownItem).find('> .nav_link');
+    const menu = self.closest(dropdownItem).find(dropdownBox);
 
     $(menuLinksItems).add(dropdownBox).removeClass('w--open');
 
     if (!dropdownOpen && !state) {
+      // States
       dropdownOpen = true;
+      selectHighlight(self);
+
+      // Class handling
       link.add(menu).addClass('w--open');
       $(navbar).add('body').addClass('open');
-    } else if (!state) {
-      link.add(menu).addClass('w--open');
-    }
 
-    gsap.timeline().fromTo(
-      $(self).find('.nav_dropdown-list'),
-      { css: { minHeight: '25rem' } },
-      {
-        css: { minHeight: '28rem' },
-        duration: 0.75,
-        ease: Power2.easeOut,
-      }
-    );
+      // Animation
+      dropdownAnim(self);
+    } else if (!state) {
+      selectHighlight(self);
+      link.add(menu).addClass('w--open');
+      // Animation
+      dropdownAnim(self);
+    }
   }
 
-  $(dropdownItem).on('click', function () {
+  $(drodownLink).on('click', function () {
     toggleNavDropdownState($(this), $(this).hasClass('w--open'));
   });
 
@@ -129,9 +130,6 @@ $(document).ready(() => {
       closeNavDropdown();
     }
   });
-
-  // Check if open first or current dropdown item
-  $(dropdownItem).not('.nav_dropdown-part .nav_link').on('click', handleDropdownClick);
 
   // Dropdown Texts
   $('.nav_dropdown-menu_links')
@@ -206,8 +204,11 @@ $(document).ready(() => {
     $(pTag, title).fadeTo('fast', 1);
   }
   // Handle the dropdown click
-  function handleDropdownClick() {
-    let menuLinks = $(this).find('.nav_dropdown-menu_links').find(menuLinksItems);
+  function selectHighlight(self) {
+    let menuLinks = $(self)
+      .closest(dropdownItem)
+      .find('.nav_dropdown-menu_links')
+      .find(menuLinksItems);
     let currentItem = menuLinks.filter('.w--current');
     let firstLink = menuLinks.eq(0);
     if ($(window).width() >= 992) {
@@ -224,4 +225,17 @@ $(document).ready(() => {
       currentItem.removeClass('active');
     }
   }
+
+  const dropdownAnim = (self) => {
+    // Animation
+    return gsap.timeline().fromTo(
+      $(self).closest(dropdownItem).find('.nav_dropdown-list'),
+      { css: { minHeight: '25rem' } },
+      {
+        css: { minHeight: '28rem' },
+        duration: 0.75,
+        ease: Power2.easeOut,
+      }
+    );
+  };
 });
