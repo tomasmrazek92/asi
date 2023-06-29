@@ -28,6 +28,16 @@ $(document).ready(() => {
             css: { maxWidth: '144rem' },
           }
         );
+        tl.fromTo(
+          '.globe-img',
+          {
+            yPercent: 0,
+          },
+          {
+            yPercent: 35,
+          },
+          '<'
+        );
       });
     },
   });
