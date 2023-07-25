@@ -77,6 +77,7 @@ $(document).ready(() => {
   function toggleNavDropdownState(self, state) {
     const link = self.closest(dropdownItem).find('> .nav_link');
     const menu = self.closest(dropdownItem).find(dropdownBox);
+    const menuIcon = self.find('.nav_respo-icon');
 
     $(menuLinksItems).add(dropdownBox).removeClass('w--open');
 
@@ -91,11 +92,16 @@ $(document).ready(() => {
 
       // Animation
       dropdownAnim(self);
+      gsap.to(menuIcon, { rotate: 45, duration: 0.4 });
     } else if (!state) {
       selectHighlight(self);
       link.add(menu).addClass('w--open');
       // Animation
       dropdownAnim(self);
+      gsap.to(menuIcon, { rotate: 45, duration: 0.4 });
+    } else {
+      closeNavDropdown();
+      gsap.to('.nav_respo-icon', { rotate: 0, duration: 0.4 });
     }
   }
 
@@ -239,48 +245,3 @@ $(document).ready(() => {
     );
   };
 });
-
-let storedArray = JSON.parse(localStorage.getItem('months')) || [];
-
-const cardTitle = '.collection_title';
-const card = '.collection-item_wrap';
-
-highlightCards();
-
-function highlightCards() {
-  $(card).each(function () {
-    let heading = $(this).find(cardTitle).text();
-    if (storedArray.includes(heading)) {
-      $(this).addClass('done');
-    }
-  });
-}
-
-function handleClicks(buttons) {
-  var title = buttons.closest(card).find(cardTitle).text();
-
-  if (!storedArray.includes(title)) {
-    storedArray.push(title);
-    localStorage.setItem('months', JSON.stringify(storedArray));
-    highlightCards();
-  }
-}
-
-window.fsAttributes = window.fsAttributes || [];
-window.fsAttributes.push([
-  'cmsfilter',
-  (filterInstances) => {
-    const [filterInstance] = filterInstances;
-
-    filterInstance.listInstance.on('renderitems', (renderedItems) => {
-      $(renderedItems).each(function () {
-        let $element = $(this)[0].element;
-        $($element)
-          .find('.collection-step-button')
-          .on('click', function () {
-            handleClicks($(this));
-          });
-      });
-    });
-  },
-]);
