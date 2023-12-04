@@ -162,8 +162,9 @@ $(document).ready(() => {
 
         // Load
         updateTime();
+
         // Real Time
-        setInterval(updateTime, 30000);
+        setInterval(updateTime, 1000);
 
         // Mouse Coordinates
         $(document).mousemove(function (event) {
