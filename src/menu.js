@@ -13,7 +13,7 @@ $(document).ready(() => {
   const drodownLink = dropdownItem + '>' + menuLinksItems;
   const dropdownBox = ' .nav_dropdown-menu-box';
   const dropDownTitle = '[nav-description]';
-  const dropDownDesc = '.nav_dropdown-menu_description p';
+  const dropDownDesc = '.nav_dropdown-menu_desc p';
   const menuButton = '.nav_ham';
 
   // -- Menu Animation
