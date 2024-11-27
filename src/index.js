@@ -20,6 +20,18 @@ $(document).ready(() => {
   }
 });
 
+// Global Scope
+var isScrollDisabled = false;
+
+// Function
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
 function dfCards() {
   let dfCardsTL;
   let scrollTriggerInstance;
@@ -91,7 +103,6 @@ function dfCards() {
     });
 
     dfCards.each(function (index) {
-      console.log($(this));
       if (index !== dfCards.length - 1) {
         dfCardsTL.to($(this), {
           ease: 'none',
@@ -107,41 +118,69 @@ function dfCards() {
     '(min-width: 992px)': initScrollAnimation,
   });
 }
+function scrollDisabler() {
+  function toggleScroll() {
+    if (isScrollDisabled) {
+      isScrollDisabled = false;
+      lenis.start();
+    } else {
+      isScrollDisabled = true;
+      lenis.stop();
+    }
+  }
+
+  // Click Event
+  $('[scroll="toggle"]').on('click', toggleScroll);
+
+  // Run on resize
+  const breakpoints = [991, 767, 479];
+  let lastWidth = window.innerWidth;
+
+  // Function to check breakpoints on window resize
+  function checkBreakpoints() {
+    const currentWidth = window.innerWidth;
+
+    breakpoints.forEach((breakpoint) => {
+      if (isScrollDisabled) {
+        if (
+          (lastWidth <= breakpoint && currentWidth > breakpoint) ||
+          (lastWidth >= breakpoint && currentWidth < breakpoint)
+        ) {
+          lenis.start();
+        }
+      }
+    });
+
+    // Update lastWidth for the next call
+    lastWidth = currentWidth;
+  }
+  window.addEventListener('resize', checkBreakpoints);
+}
+function scrollNav() {
+  // Variables
+  const navbar = $('.nav');
+  let lastScroll = 0;
+
+  // Scroll handler with debouncing
+  const handleScroll = debounce(() => {
+    const currentScroll = window.scrollY;
+
+    if (currentScroll > lastScroll && currentScroll > 50 && !isScrollDisabled) {
+      // Scroll down - hide navbar
+      gsap.to(navbar, { y: '-200%', duration: 1, ease: 'power2.out' });
+    } else if (currentScroll < lastScroll) {
+      // Scroll up - show navbar
+      gsap.to(navbar, { y: '0%', duration: 1, ease: 'power2.out' });
+    }
+
+    lastScroll = currentScroll;
+  }, 10);
+
+  // Attach scroll listener
+  window.addEventListener('scroll', handleScroll);
+}
 
 // Init
 dfCards();
-
-const swiperTeamBot = new Swiper('.team-slider-meta', {
-  slidesPerView: 1,
-  effect: 'fade',
-  fadeEffect: {
-    crossFade: true,
-  },
-  spaceBetween: 4,
-  centeredSlides: true,
-  loopAdditionalSlides: 20,
-  loop: true,
-  allowTouchMove: false, // Disable swipe
-  // Navigation arrows
-  navigation: {
-    nextEl: '.swiper-arrow.next',
-    prevEl: '.swiper-arrow.prev',
-  },
-});
-
-const swiperTeamTop = new Swiper('.team-slider', {
-  slidesPerView: 1,
-  spaceBetween: 4,
-  centeredSlides: true,
-  loopAdditionalSlides: 20,
-  loop: true,
-  // Navigation arrows
-  navigation: {
-    nextEl: '.swiper-arrow.next',
-    prevEl: '.swiper-arrow.prev',
-  },
-  // Controller
-  controller: {
-    control: swiperTeamBot,
-  },
-});
+scrollNav();
+scrollDisabler();
