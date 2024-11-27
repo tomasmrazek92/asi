@@ -20,88 +20,128 @@ $(document).ready(() => {
   }
 });
 
-let dfCardsTL;
-let scrollTriggerInstance;
+function dfCards() {
+  let dfCardsTL;
+  let scrollTriggerInstance;
 
-ScrollTrigger.defaults({
-  markers: true,
-  anticipatePin: 1,
-});
-
-function destroyScrollAnimation() {
-  if (dfCardsTL) {
-    dfCardsTL.kill(true);
-    dfCardsTL = null;
-  }
-
-  if (scrollTriggerInstance) {
-    scrollTriggerInstance.kill(true);
-    scrollTriggerInstance = null;
-  }
-
-  // Optional: Clear any inline styles added by GSAP
-  gsap.set('[data-gsap-clearProps]', { clearProps: 'all' });
-  gsap.set('[data-sticky-visual]', { clearProps: 'all' });
-  gsap.set('.pin-spacer', { clearProps: 'all' });
-}
-
-function initScrollAnimation() {
-  destroyScrollAnimation();
-
-  let dfCards = $('[data-sticky-visual="animated"] img');
-  let totalHeight = 0;
-  let lastHeight = 0;
-  let adjustedHeight;
-
-  function calculateSectionHeight() {
-    totalHeight = 0;
-    dfCards.each(function (index) {
-      let height = $(this).height();
-      totalHeight += height;
-
-      if (index === dfCards.length - 1) {
-        adjustedHeight = totalHeight - height;
-      }
-    });
-    return adjustedHeight;
-  }
-
-  function setDynamicZIndex(selector) {
-    const elements = $(selector);
-    const maxZIndex = elements.length;
-
-    elements.each(function (index) {
-      $(this).css('z-index', maxZIndex - index);
-    });
-  }
-
-  gsap.set(dfCards, { position: 'absolute' });
-  setDynamicZIndex(dfCards);
-
-  dfCardsTL = gsap.timeline({
-    scrollTrigger: {
-      trigger: '[data-sticky-visual="animated"]',
-      start: () => `top ${$('.nav_wrap').outerHeight()}`,
-      end: () => `+=${calculateSectionHeight()}`,
-      pin: true,
-      scrub: true,
-      invalidateOnRefresh: true,
-    },
+  ScrollTrigger.defaults({
+    markers: true,
+    anticipatePin: 1,
   });
 
-  dfCards.each(function (index) {
-    console.log($(this));
-    if (index !== dfCards.length - 1) {
-      dfCardsTL.to($(this), {
-        ease: 'none',
-        clipPath: 'inset(0px 0px 100%)',
+  function destroyScrollAnimation() {
+    if (dfCardsTL) {
+      dfCardsTL.kill(true);
+      dfCardsTL = null;
+    }
+
+    if (scrollTriggerInstance) {
+      scrollTriggerInstance.kill(true);
+      scrollTriggerInstance = null;
+    }
+
+    // Optional: Clear any inline styles added by GSAP
+    gsap.set('[data-gsap-clearProps]', { clearProps: 'all' });
+    gsap.set('[data-sticky-visual]', { clearProps: 'all' });
+    gsap.set('.pin-spacer', { clearProps: 'all' });
+  }
+
+  function initScrollAnimation() {
+    destroyScrollAnimation();
+
+    let dfCards = $('[data-sticky-visual="animated"] img');
+    let totalHeight = 0;
+    let lastHeight = 0;
+    let adjustedHeight;
+
+    function calculateSectionHeight() {
+      totalHeight = 0;
+      dfCards.each(function (index) {
+        let height = $(this).height();
+        totalHeight += height;
+
+        if (index === dfCards.length - 1) {
+          adjustedHeight = totalHeight - height;
+        }
+      });
+      return adjustedHeight;
+    }
+
+    function setDynamicZIndex(selector) {
+      const elements = $(selector);
+      const maxZIndex = elements.length;
+
+      elements.each(function (index) {
+        $(this).css('z-index', maxZIndex - index);
       });
     }
+
+    gsap.set(dfCards, { position: 'absolute' });
+    setDynamicZIndex(dfCards);
+
+    dfCardsTL = gsap.timeline({
+      scrollTrigger: {
+        trigger: '[data-sticky-visual="animated"]',
+        start: () => `top ${$('.nav_wrap').outerHeight()}`,
+        end: () => `+=${calculateSectionHeight()}`,
+        pin: true,
+        scrub: true,
+        invalidateOnRefresh: true,
+      },
+    });
+
+    dfCards.each(function (index) {
+      console.log($(this));
+      if (index !== dfCards.length - 1) {
+        dfCardsTL.to($(this), {
+          ease: 'none',
+          clipPath: 'inset(0px 0px 100%)',
+        });
+      }
+    });
+  }
+
+  /***** GSAP Resize Handle *****/
+  ScrollTrigger.matchMedia({
+    // desktop
+    '(min-width: 992px)': initScrollAnimation,
   });
 }
 
-/***** GSAP Resize Handle *****/
-ScrollTrigger.matchMedia({
-  // desktop
-  '(min-width: 992px)': initScrollAnimation,
+// Init
+dfCards();
+
+const swiperTeamBot = new Swiper('.team-slider-meta', {
+  slidesPerView: 1,
+  effect: 'fade',
+  fadeEffect: {
+    crossFade: true,
+  },
+  spaceBetween: 4,
+  centeredSlides: true,
+  loopAdditionalSlides: 20,
+  loop: true,
+  allowTouchMove: false, // Disable swipe
+  // Navigation arrows
+  navigation: {
+    nextEl: '.swiper-arrow.next',
+    prevEl: '.swiper-arrow.prev',
+  },
+});
+
+const swiperTeamTop = new Swiper('.team-slider', {
+  slidesPerView: 1,
+  spaceBetween: 4,
+  centeredSlides: true,
+  loopAdditionalSlides: 20,
+  loop: true,
+  // Navigation arrows
+  navigation: {
+    nextEl: '.swiper-arrow.next',
+    prevEl: '.swiper-arrow.prev',
+  },
+  // Controller
+  controller: {
+    control: swiperTeamBot,
+  },
 });
