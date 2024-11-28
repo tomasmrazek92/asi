@@ -253,7 +253,7 @@ function animateCards() {
       '--depth': '-7em',
       '--angle': '90deg',
     },
-    { '--angle': '0deg', marginLeft: `3em`, marginRight: '3em', ease: 'none' },
+    { '--angle': '0deg', ease: 'none' },
     '<'
   );
 }
