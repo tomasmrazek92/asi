@@ -252,8 +252,6 @@ function animateCards() {
     {
       '--depth': '-7em',
       '--angle': '90deg',
-      marginLeft: `${margin}em`,
-      marginRight: `${margin}em`,
     },
     { '--angle': '0deg', marginLeft: `3em`, marginRight: '3em', ease: 'none' },
     '<'
