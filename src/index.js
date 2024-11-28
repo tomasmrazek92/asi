@@ -239,11 +239,12 @@ function animateCards() {
   tl.fromTo(
     $('.card-row'),
     { '--rowX': '120em', '--rotationX': '-30deg', '--angle': '80deg' },
-    { '--rowX': '0em', '--rotationX': '-0deg', '--angle': '90deg' }
+    { '--rowX': '0em', '--rotationX': '-0deg', '--angle': '90deg', ease: 'none' }
   );
 
   tl.to(middleCube, {
     '--zDepth': '8em',
+    ease: 'none',
   });
 
   tl.fromTo(
@@ -254,7 +255,7 @@ function animateCards() {
       marginLeft: `${margin}em`,
       marginRight: `${margin}em`,
     },
-    { '--angle': '0deg', marginLeft: `3em`, marginRight: '3em' },
+    { '--angle': '0deg', marginLeft: `3em`, marginRight: '3em', ease: 'none' },
     '<'
   );
 }
@@ -332,6 +333,7 @@ $('.section.cc-hp-timeline').each(function (index) {
       labelEl,
       {
         x: `+=${offsetX}`,
+        ease: 'none',
         onUpdate: function () {
           // Animate the time during the movement
           const startTime = 15 * 60; // 15:00 in minutes
