@@ -242,16 +242,9 @@ function animateCards() {
     { '--rowX': '0em', '--rotationX': '-0deg', '--angle': '90deg' }
   );
 
-  tl.to(cards, {
-    '--depth': '7em',
+  tl.to(middleCube, {
+    '--zDepth': '8em',
   });
-  tl.to(
-    middleCube,
-    {
-      '--zDepth': '5em',
-    },
-    '<'
-  );
 
   tl.fromTo(
     middleCube,
