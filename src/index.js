@@ -64,7 +64,7 @@ function dfCards() {
   function initScrollAnimation() {
     destroyScrollAnimation();
 
-    let dfCards = $('[data-sticky-visual="animated"] img');
+    let dfCards = $('[data-sticky-visual="animated"]').children();
     let totalHeight = 0;
     let lastHeight = 0;
     let adjustedHeight;
@@ -270,7 +270,8 @@ function moveImage() {
   tl.to(
     $('[data-timeline-mask]'),
     {
-      height: '40%',
+      height: '70%',
+      yPercent: -30,
       ease: 'none',
     },
     '<'
@@ -334,19 +335,19 @@ $('.section.cc-hp-timeline').each(function (index) {
         ease: 'none',
         onUpdate: function () {
           // Animate the time during the movement
-          const startTime = 15 * 60; // 15:00 in minutes
-          const endTime = 19 * 60; // 19:00 in minutes
+          const startTime = 0 * 60; // 15:00 in minutes
+          const endTime = 3 * 60; // 19:00 in minutes
           const progress = this.progress(); // Get the animation progress (0 to 1)
           const currentTime = startTime + (endTime - startTime) * progress; // Interpolate time
           const hours = Math.floor(currentTime / 60); // Extract hours
           const minutes = Math.floor(currentTime % 60); // Extract minutes
           const formattedTime = `${hours}:${minutes.toString().padStart(2, '0')}`; // Format as HH:MM
-          labelEl.find('div').text(formattedTime); // Update the label's text
+          labelEl.find('div').text('+' + formattedTime + 'h'); // Update the label's text
         },
       },
       '<0.2'
     );
-    timeline.to(labelEl, { backgroundColor: 'red', color: 'white' }, '>-0.15');
+    timeline.to(labelEl, { backgroundColor: 'red', color: 'white', duration: 0 });
   }
 
   createTimeline();
