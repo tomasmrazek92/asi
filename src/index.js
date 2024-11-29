@@ -25,6 +25,10 @@ $(document).ready(() => {
 // Global Scope
 var isScrollDisabled = false;
 
+function checkIfDesktop() {
+  return $(window).width() > 991;
+}
+
 // Function
 function debounce(func, wait) {
   let timeout;
@@ -97,7 +101,7 @@ function dfCards() {
     dfCardsTL = gsap.timeline({
       scrollTrigger: {
         trigger: '[data-sticky-visual="animated"]',
-        start: () => `top ${$('.nav_wrap').outerHeight()}`,
+        start: 'center center',
         end: () => `+=${calculateSectionHeight()}`,
         pin: true,
         scrub: true,
@@ -183,10 +187,11 @@ function scrollDisabler() {
   window.addEventListener('resize', checkBreakpoints);
 }
 
+// Global Functions
 function animateCards() {
   const cards = $('.card');
   const middleIndex = Math.floor(cards.length / 2);
-  const middleCube = cards.eq(middleIndex);
+  const middleCard = cards.eq(middleIndex);
   let margin = -6;
 
   // Split the middle
@@ -215,7 +220,7 @@ function animateCards() {
   });
 
   // Target colors
-  middleCube.addClass('middle');
+  middleCard.addClass('middle');
   $('.middle').each(function () {
     const $middle = $(this);
 
@@ -252,18 +257,10 @@ function animateCards() {
     { '--rowX': '0em', '--rotationX': '-0deg', '--angle': '90deg', ease: 'none' }
   );
 
-  tl.to(middleCube, {
-    '--zDepth': '12em',
+  tl.to(cards.filter('.before-middle'), {
+    '--zDepth': '-12em',
     ease: 'none',
   });
-  tl.to(
-    cards.filter('.before-middle'),
-    {
-      '--zDepth': '-12em',
-      ease: 'none',
-    },
-    '<'
-  );
   tl.to(
     cards.filter('.after-middle'),
     {
@@ -272,9 +269,8 @@ function animateCards() {
     },
     '<'
   );
-
   tl.fromTo(
-    middleCube,
+    middleCard,
     {
       '--depth': '-7em',
       '--angle': '90deg',
@@ -282,110 +278,164 @@ function animateCards() {
     { '--angle': '0deg', ease: 'none' },
     '<'
   );
-}
-function moveImage() {
-  let tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: $('.timeline-box'),
-      start: 'top bottom',
-      end: 'top center',
-      scrub: true,
-    },
+  tl.to(middleCard, {
+    '--zDepth': '5em',
+    ease: 'none',
   });
   tl.to(
-    $('[data-timeline-mask]'),
+    cards.not(middleCard),
     {
-      height: '70%',
-      yPercent: -30,
+      '--depth': '5em',
       ease: 'none',
     },
     '<'
   );
 }
+function moveTimeline() {
+  $('.section.cc-hp-timeline').each(function (index) {
+    let componentEl = $(this),
+      timelineEl = componentEl.find('.timeline-wrap'),
+      originEl = componentEl.find('[flip-origin]'),
+      targetEl = componentEl.find('[flip-target]'),
+      labelEl = componentEl.find('[data-label-el]');
+    let componentIndex = index,
+      timeline,
+      resizeTimer;
 
-// scrollflip component
-$('.section.cc-hp-timeline').each(function (index) {
-  let componentEl = $(this),
-    originEl = componentEl.find('[flip-origin]'),
-    targetEl = componentEl.find('[flip-target]'),
-    labelEl = componentEl.find('[data-label-el]');
-  let componentIndex = index,
-    timeline,
-    resizeTimer;
-  // asign matching data flip ids
-  originEl.each(function (index) {
-    let flipId = `${componentIndex}-${index}`;
-    $(this).attr('data-flip-id', flipId);
-    targetEl.eq(index).attr('data-flip-id', flipId);
-  });
-  // create timeline
-  function createTimeline() {
-    if (timeline) {
-      timeline.kill();
-      gsap.set(targetEl, { clearProps: 'all' });
-      gsap.set(labelEl, { clearProps: 'all' });
+    // asign matching data flip ids
+    originEl.each(function (index) {
+      let flipId = `${componentIndex}-${index}`;
+      $(this).attr('data-flip-id', flipId);
+      targetEl.eq(index).attr('data-flip-id', flipId);
+    });
+
+    function createTimeline() {
+      let isDesktop = checkIfDesktop();
+
+      if (timeline) {
+        timeline.kill();
+        gsap.set(timelineEl, { clearProps: 'all' });
+        gsap.set(targetEl, { clearProps: 'all' });
+        gsap.set(labelEl, { clearProps: 'all' });
+      }
+
+      const state = Flip.getState(originEl);
+      timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: $('.timeline-box'),
+          start: 'top bottom',
+          end: 'top center',
+          scrub: true,
+        },
+      });
+
+      timeline.add(
+        Flip.from(state, {
+          targets: targetEl,
+          ignore: 'height',
+          ease: 'none',
+        })
+      );
+
+      function updateTime() {
+        // Animate the time during the movement
+        const startTime = 0 * 60;
+        const endTime = 3 * 60;
+        const progress = this.progress();
+        const currentTime = startTime + (endTime - startTime) * progress;
+        const hours = Math.floor(currentTime / 60); // Extract hours
+        const minutes = Math.floor(currentTime % 60); // Extract minutes
+        const formattedTime = `${hours}:${minutes.toString().padStart(2, '0')}`; // Format as HH:MM
+        if (progress === 0) {
+          labelEl.find('div').text('Now');
+        } else {
+          labelEl.find('div').text('+' + formattedTime + 'h'); // Update the label's text
+        }
+      }
+      // Target elements
+      const labelEnd = $('[data-label-end]');
+
+      // Get positions and widths
+      const labelBounds = labelEl.filter(':visible')[0].getBoundingClientRect();
+      const targetBounds = labelEnd[0].getBoundingClientRect();
+
+      // Calculate the x-axis offset needed to center labelEl with targetEl
+      const offsetX =
+        targetBounds.left + targetBounds.width / 2 - (labelBounds.left + labelBounds.width / 2);
+
+      timeline.to(
+        isDesktop ? labelEl : timelineEl,
+        {
+          x: isDesktop ? `+=${offsetX}` : `-=${offsetX}`,
+          ease: 'none',
+          onUpdate: updateTime,
+        },
+        '<0.2'
+      );
+
+      timeline.to(labelEl, { backgroundColor: 'red', color: 'white', duration: 0 });
     }
-    const state = Flip.getState(originEl);
-    timeline = gsap.timeline({
+
+    createTimeline();
+
+    // update on window resize
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        createTimeline();
+      }, 250);
+    });
+  });
+}
+
+// Desktop Only
+function moveImage() {
+  let mask = $('[data-timeline-mask]');
+  let tl, resizeTimer;
+
+  function initTl() {
+    let isDesktop = checkIfDesktop();
+
+    if (tl) {
+      tl.kill();
+      gsap.set(mask, { clearProps: 'all' });
+    }
+
+    tl = gsap.timeline({
       scrollTrigger: {
-        trigger: $('.card-wrap'),
-        start: 'top 80%',
-        end: 'top center',
+        trigger: $('.visual-box.cc-new-gen'),
+        start: 'bottom bottom',
+        endTrigger: $('.timeline-box'),
+        end: 'bottom bottom',
         scrub: true,
       },
     });
-    timeline.add(
-      Flip.from(state, {
-        targets: targetEl,
-        ignore: 'height',
-        ease: 'none',
-      })
-    );
-
-    // Target elements
-    const labelEnd = $('[data-label-end]');
-
-    // Get positions and widths
-    const labelBounds = labelEl[0].getBoundingClientRect();
-    const targetBounds = labelEnd[0].getBoundingClientRect();
-
-    // Calculate the x-axis offset needed to center labelEl with targetEl
-    const offsetX =
-      targetBounds.left + targetBounds.width / 2 - (labelBounds.left + labelBounds.width / 2);
-
-    // GSAP animation to move labelEl to the calculated offset
-    timeline.to(
-      labelEl,
-      {
-        x: `+=${offsetX}`,
-        ease: 'none',
-        onUpdate: function () {
-          // Animate the time during the movement
-          const startTime = 0 * 60; // 15:00 in minutes
-          const endTime = 3 * 60; // 19:00 in minutes
-          const progress = this.progress(); // Get the animation progress (0 to 1)
-          const currentTime = startTime + (endTime - startTime) * progress; // Interpolate time
-          const hours = Math.floor(currentTime / 60); // Extract hours
-          const minutes = Math.floor(currentTime % 60); // Extract minutes
-          const formattedTime = `${hours}:${minutes.toString().padStart(2, '0')}`; // Format as HH:MM
-          labelEl.find('div').text('+' + formattedTime + 'h'); // Update the label's text
+    if (isDesktop) {
+      tl.to(
+        $('[data-timeline-mask]'),
+        {
+          height: '70%',
+          yPercent: -30,
+          ease: 'none',
         },
-      },
-      '<0.2'
-    );
-    timeline.to(labelEl, { backgroundColor: 'red', color: 'white', duration: 0 });
+        '<'
+      );
+    }
   }
 
-  createTimeline();
+  // Init
+  initTl();
 
-  // update on window resize
+  // On resize
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
-      createTimeline();
+      initTl();
     }, 250);
   });
-});
+}
+
+// scrollflip component
 
 // Init
 dfCards();
@@ -393,3 +443,4 @@ scrollNav();
 scrollDisabler();
 animateCards();
 moveImage();
+moveTimeline();
