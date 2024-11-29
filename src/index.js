@@ -191,11 +191,21 @@ function animateCards() {
 
   // Split the middle
   cards.each(function (index) {
-    const $cube = $(this);
+    const card = $(this);
     let distance = Math.abs(index - middleIndex) * 1;
     let zIndex = cards.length - Math.abs(index - middleIndex);
 
-    $cube.css({
+    // Apply classes based on position relative to the middle index
+    if (index < middleIndex) {
+      card.addClass('before-middle');
+    } else if (index > middleIndex) {
+      card.addClass('after-middle');
+    } else {
+      card.addClass('middle-item');
+    }
+
+    // Apply styles
+    card.css({
       '--distance': '0em',
       'margin-left': `${margin}em`,
       'margin-right': `${margin}em`,
@@ -243,9 +253,25 @@ function animateCards() {
   );
 
   tl.to(middleCube, {
-    '--zDepth': '8em',
+    '--zDepth': '12em',
     ease: 'none',
   });
+  tl.to(
+    cards.filter('.before-middle'),
+    {
+      '--zDepth': '-12em',
+      ease: 'none',
+    },
+    '<'
+  );
+  tl.to(
+    cards.filter('.after-middle'),
+    {
+      '--zDepth': '12em',
+      ease: 'none',
+    },
+    '<'
+  );
 
   tl.fromTo(
     middleCube,
@@ -257,7 +283,6 @@ function animateCards() {
     '<'
   );
 }
-
 function moveImage() {
   let tl = gsap.timeline({
     scrollTrigger: {
@@ -277,6 +302,7 @@ function moveImage() {
     '<'
   );
 }
+
 // scrollflip component
 $('.section.cc-hp-timeline').each(function (index) {
   let componentEl = $(this),
