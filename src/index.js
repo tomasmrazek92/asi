@@ -143,7 +143,7 @@ function scrollNav() {
     }
 
     lastScroll = currentScroll;
-  }, 10);
+  }, 1);
 
   // Attach scroll listener
   window.addEventListener('scroll', handleScroll);
@@ -247,24 +247,28 @@ function animateCards() {
       trigger: $('.card-wrap'),
       start: 'top bottom',
       end: 'bottom center',
-      scrub: true,
+      scrub: 1,
     },
   });
 
   tl.fromTo(
     $('.card-row'),
-    { '--rowX': '120em', '--rotationX': '-30deg', '--angle': '80deg' },
+    { '--rowX': '80em', '--rotationX': '-30deg', '--angle': '80deg' },
     { '--rowX': '0em', '--rotationX': '-0deg', '--angle': '90deg', ease: 'none' }
   );
 
   tl.to(cards.filter('.before-middle'), {
-    '--zDepth': '-12em',
+    '--zDepth': () => {
+      return checkIfDesktop() ? '-12em' : '-6em';
+    },
     ease: 'none',
   });
   tl.to(
     cards.filter('.after-middle'),
     {
-      '--zDepth': '12em',
+      '--zDepth': () => {
+        return checkIfDesktop() ? '12em' : '6em';
+      },
       ease: 'none',
     },
     '<'
@@ -324,8 +328,9 @@ function moveTimeline() {
         scrollTrigger: {
           trigger: $('.timeline-box'),
           start: 'top bottom',
-          end: 'top center',
-          scrub: true,
+          endTrigger: $('.card-wrap'),
+          end: 'center center',
+          scrub: 1,
         },
       });
 
@@ -370,7 +375,7 @@ function moveTimeline() {
           ease: 'none',
           onUpdate: updateTime,
         },
-        '<0.2'
+        '<'
       );
 
       timeline.to(labelEl, { backgroundColor: 'red', color: 'white', duration: 0 });
@@ -391,6 +396,7 @@ function moveTimeline() {
 // Desktop Only
 function moveImage() {
   let mask = $('[data-timeline-mask]');
+  let heading = $('[data-timeline-heading]');
   let tl, resizeTimer;
 
   function initTl() {
@@ -399,24 +405,31 @@ function moveImage() {
     if (tl) {
       tl.kill();
       gsap.set(mask, { clearProps: 'all' });
+      gsap.set(heading, { clearProps: 'all' });
     }
 
     tl = gsap.timeline({
       scrollTrigger: {
         trigger: $('.visual-box.cc-new-gen'),
         start: 'bottom bottom',
-        endTrigger: $('.timeline-box'),
-        end: 'bottom bottom',
-        scrub: true,
+        endTrigger: $('.card-wrap'),
+        end: 'center center',
+        scrub: 1,
       },
     });
     if (isDesktop) {
       tl.to(
-        $('[data-timeline-mask]'),
+        [mask, heading],
+        {
+          y: '-80rem',
+          ease: 'none',
+        },
+        '<'
+      );
+      tl.to(
+        mask,
         {
           height: '70%',
-          yPercent: -30,
-          ease: 'none',
         },
         '<'
       );
