@@ -1,6 +1,19 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
+// Initialize the auto video functionality
 gsap.registerPlugin(ScrollTrigger, Flip);
 
-$(document).ready(() => {
+// Global Scope
+var isScrollDisabled = false;
+
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+function trggerExternalLinks() {
   // Find all <a> tags in the document and look for external
   var links = document.getElementsByTagName('a');
 
@@ -20,111 +33,9 @@ $(document).ready(() => {
       link.setAttribute('target', '_blank');
     }
   }
-});
-
-// Global Scope
-var isScrollDisabled = false;
-
-function checkIfDesktop() {
-  return $(window).width() > 991;
 }
 
-// Function
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    const context = this;
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(context, args), wait);
-  };
-}
-function dfCards() {
-  let dfCardsTL;
-  let scrollTriggerInstance;
-
-  ScrollTrigger.defaults({
-    markers: true,
-    anticipatePin: 1,
-    ease: 'none',
-  });
-
-  function destroyScrollAnimation() {
-    if (dfCardsTL) {
-      dfCardsTL.kill(true);
-      dfCardsTL = null;
-    }
-
-    if (scrollTriggerInstance) {
-      scrollTriggerInstance.kill(true);
-      scrollTriggerInstance = null;
-    }
-
-    // Optional: Clear any inline styles added by GSAP
-    gsap.set('[data-gsap-clearProps]', { clearProps: 'all' });
-    gsap.set('[data-sticky-visual]', { clearProps: 'all' });
-    gsap.set('.pin-spacer', { clearProps: 'all' });
-  }
-
-  function initScrollAnimation() {
-    destroyScrollAnimation();
-
-    let dfCards = $('[data-sticky-visual="animated"]').children();
-    let totalHeight = 0;
-    let lastHeight = 0;
-    let adjustedHeight;
-
-    function calculateSectionHeight() {
-      totalHeight = 0;
-      dfCards.each(function (index) {
-        let height = $(this).height();
-        totalHeight += height;
-
-        if (index === dfCards.length - 1) {
-          adjustedHeight = totalHeight - height;
-        }
-      });
-      return adjustedHeight;
-    }
-
-    function setDynamicZIndex(selector) {
-      const elements = $(selector);
-      const maxZIndex = elements.length;
-
-      elements.each(function (index) {
-        $(this).css('z-index', maxZIndex - index);
-      });
-    }
-
-    gsap.set(dfCards, { position: 'absolute' });
-    setDynamicZIndex(dfCards);
-
-    dfCardsTL = gsap.timeline({
-      scrollTrigger: {
-        trigger: '[data-sticky-visual="animated"]',
-        start: 'center center',
-        end: () => `+=${calculateSectionHeight()}`,
-        pin: true,
-        scrub: true,
-        invalidateOnRefresh: true,
-      },
-    });
-
-    dfCards.each(function (index) {
-      if (index !== dfCards.length - 1) {
-        dfCardsTL.to($(this), {
-          ease: 'none',
-          clipPath: 'inset(0px 0px 100%)',
-        });
-      }
-    });
-  }
-
-  /***** GSAP Resize Handle *****/
-  ScrollTrigger.matchMedia({
-    // desktop
-    '(min-width: 992px)': initScrollAnimation,
-  });
-}
+// #region nav
 function scrollNav() {
   // Variables
   const navbar = $('.nav');
@@ -187,273 +98,186 @@ function scrollDisabler() {
   window.addEventListener('resize', checkBreakpoints);
 }
 
-// Global Functions
-function animateCards() {
-  const cards = $('.card');
-  const middleIndex = Math.floor(cards.length / 2);
-  const middleCard = cards.eq(middleIndex);
-  let margin = -6;
+// #endregion
 
-  // Split the middle
-  cards.each(function (index) {
-    const card = $(this);
-    let distance = Math.abs(index - middleIndex) * 1;
-    let zIndex = cards.length - Math.abs(index - middleIndex);
+// #region dfCards
+function dfCards() {
+  let dfCardsTL;
+  let scrollTriggerInstance;
 
-    // Apply classes based on position relative to the middle index
-    if (index < middleIndex) {
-      card.addClass('before-middle');
-    } else if (index > middleIndex) {
-      card.addClass('after-middle');
-    } else {
-      card.addClass('middle-item');
-    }
-
-    // Apply styles
-    card.css({
-      '--distance': '0em',
-      'margin-left': `${margin}em`,
-      'margin-right': `${margin}em`,
-      '--depth': `${distance}em`,
-      'z-index': zIndex,
-    });
-  });
-
-  // Target colors
-  middleCard.addClass('middle');
-  $('.middle').each(function () {
-    const $middle = $(this);
-
-    // Target the 3 previous siblings
-    $middle
-      .prevAll('.card')
-      .slice(0, 3)
-      .each(function (index) {
-        $(this).addClass(index === 0 ? 'first' : index === 1 ? 'second' : 'third');
-      });
-
-    // Target the 3 following siblings
-    $middle
-      .nextAll('.card')
-      .slice(0, 3)
-      .each(function (index) {
-        $(this).addClass(index === 0 ? 'first' : index === 1 ? 'second' : 'third');
-      });
-  });
-
-  // Animate the timeline
-  let tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: $('.card-wrap'),
-      start: 'top bottom',
-      end: 'bottom center',
-      scrub: 1,
-    },
-  });
-
-  tl.fromTo(
-    $('.card-row'),
-    { '--rowX': '80em', '--rotationX': '-30deg', '--angle': '80deg' },
-    { '--rowX': '0em', '--rotationX': '-0deg', '--angle': '90deg', ease: 'none' }
-  );
-
-  tl.to(cards.filter('.before-middle'), {
-    '--zDepth': () => {
-      return checkIfDesktop() ? '-12em' : '-6em';
-    },
+  ScrollTrigger.defaults({
+    markers: true,
+    anticipatePin: 1,
     ease: 'none',
   });
-  tl.to(
-    cards.filter('.after-middle'),
-    {
-      '--zDepth': () => {
-        return checkIfDesktop() ? '12em' : '6em';
-      },
-      ease: 'none',
-    },
-    '<'
-  );
-  tl.fromTo(
-    middleCard,
-    {
-      '--depth': '-7em',
-      '--angle': '90deg',
-    },
-    { '--angle': '0deg', ease: 'none' },
-    '<'
-  );
-  tl.to(middleCard, {
-    '--zDepth': '5em',
-    ease: 'none',
-  });
-  tl.to(
-    cards.not(middleCard),
-    {
-      '--depth': '5em',
-      ease: 'none',
-    },
-    '<'
-  );
-}
-function moveTimeline() {
-  $('.section.cc-hp-timeline').each(function (index) {
-    let componentEl = $(this),
-      timelineEl = componentEl.find('.timeline-wrap'),
-      originEl = componentEl.find('[flip-origin]'),
-      targetEl = componentEl.find('[flip-target]'),
-      labelEl = componentEl.find('[data-label-el]');
-    let componentIndex = index,
-      timeline,
-      resizeTimer;
 
-    // asign matching data flip ids
-    originEl.each(function (index) {
-      let flipId = `${componentIndex}-${index}`;
-      $(this).attr('data-flip-id', flipId);
-      targetEl.eq(index).attr('data-flip-id', flipId);
-    });
-
-    function createTimeline() {
-      let isDesktop = checkIfDesktop();
-
-      if (timeline) {
-        timeline.kill();
-        gsap.set(timelineEl, { clearProps: 'all' });
-        gsap.set(targetEl, { clearProps: 'all' });
-        gsap.set(labelEl, { clearProps: 'all' });
-      }
-
-      const state = Flip.getState(originEl);
-      timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: $('.timeline-box'),
-          start: 'top bottom',
-          endTrigger: $('.card-wrap'),
-          end: 'center center',
-          scrub: 1,
-        },
-      });
-
-      timeline.add(
-        Flip.from(state, {
-          targets: targetEl,
-          ignore: 'height',
-          ease: 'none',
-        })
-      );
-
-      function updateTime() {
-        // Animate the time during the movement
-        const startTime = 0 * 60;
-        const endTime = 3 * 60;
-        const progress = this.progress();
-        const currentTime = startTime + (endTime - startTime) * progress;
-        const hours = Math.floor(currentTime / 60); // Extract hours
-        const minutes = Math.floor(currentTime % 60); // Extract minutes
-        const formattedTime = `${hours}:${minutes.toString().padStart(2, '0')}`; // Format as HH:MM
-        if (progress === 0) {
-          labelEl.find('div').text('Now');
-        } else {
-          labelEl.find('div').text('+' + formattedTime + 'h'); // Update the label's text
-        }
-      }
-      // Target elements
-      const labelEnd = $('[data-label-end]');
-
-      // Get positions and widths
-      const labelBounds = labelEl.filter(':visible')[0].getBoundingClientRect();
-      const targetBounds = labelEnd[0].getBoundingClientRect();
-
-      // Calculate the x-axis offset needed to center labelEl with targetEl
-      const offsetX =
-        targetBounds.left + targetBounds.width / 2 - (labelBounds.left + labelBounds.width / 2);
-
-      timeline.to(
-        isDesktop ? labelEl : timelineEl,
-        {
-          x: isDesktop ? `+=${offsetX}` : `-=${offsetX}`,
-          ease: 'none',
-          onUpdate: updateTime,
-        },
-        '<'
-      );
-
-      timeline.to(labelEl, { backgroundColor: 'red', color: 'white', duration: 0 });
+  function destroyScrollAnimation() {
+    if (dfCardsTL) {
+      dfCardsTL.kill(true);
+      dfCardsTL = null;
     }
 
-    createTimeline();
-
-    // update on window resize
-    window.addEventListener('resize', function () {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function () {
-        createTimeline();
-      }, 250);
-    });
-  });
-}
-
-// Desktop Only
-function moveImage() {
-  let mask = $('[data-timeline-mask]');
-  let heading = $('[data-timeline-heading]');
-  let tl, resizeTimer;
-
-  function initTl() {
-    let isDesktop = checkIfDesktop();
-
-    if (tl) {
-      tl.kill();
-      gsap.set(mask, { clearProps: 'all' });
-      gsap.set(heading, { clearProps: 'all' });
+    if (scrollTriggerInstance) {
+      scrollTriggerInstance.kill(true);
+      scrollTriggerInstance = null;
     }
 
-    tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: $('.visual-box.cc-new-gen'),
-        start: 'bottom bottom',
-        endTrigger: $('.card-wrap'),
-        end: 'center center',
-        scrub: 1,
-      },
-    });
-    if (isDesktop) {
-      tl.to(
-        [mask, heading],
-        {
-          y: '-80rem',
-          ease: 'none',
-        },
-        '<'
-      );
-      tl.to(
-        mask,
-        {
-          height: '70%',
-        },
-        '<'
-      );
-    }
+    // Optional: Clear any inline styles added by GSAP
+    gsap.set('[data-gsap-clearProps]', { clearProps: 'all' });
+    gsap.set('[data-sticky-visual]', { clearProps: 'all' });
+    gsap.set('.pin-spacer', { clearProps: 'all' });
   }
 
-  // Init
-  initTl();
+  function initScrollAnimation() {
+    destroyScrollAnimation();
 
-  // On resize
-  window.addEventListener('resize', function () {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () {
-      initTl();
-    }, 250);
+    let dfCards = $('[data-sticky-visual="animated"]').children();
+
+    if (!dfCards.length) {
+      return;
+    }
+
+    function setDynamicZIndex(selector) {
+      const elements = $(selector);
+      const maxZIndex = elements.length;
+
+      elements.each(function (index) {
+        $(this).css('z-index', maxZIndex - index);
+      });
+    }
+
+    function setDynamicGapTop() {
+      let windowHeight = $(window).height();
+      let distance = windowHeight - dfCards.eq(0).height();
+      let gap = distance / 2;
+      $('.sticky-header').css('margin-bottom', `-${gap}px`);
+      ScrollTrigger.refresh();
+    }
+
+    // Debounce function to limit resize calculations
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Create debounced resize handler
+    const debouncedSetGap = debounce(setDynamicGapTop, 250);
+
+    // Add resize listener
+    $(window).on('resize.dynamicGap', debouncedSetGap);
+
+    // Init
+    gsap.set(dfCards, { position: 'absolute' });
+    setDynamicZIndex(dfCards);
+
+    const dfCardsTL = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.sticky-section_list',
+        start: () => {
+          const firstLi = document.querySelector('.sticky-section_list li:first-child');
+          const firstLiRect = firstLi.getBoundingClientRect();
+          return `${firstLiRect.height / 2}px center`;
+        },
+        end: () => {
+          const lastLi = document.querySelector('.sticky-section_list li:last-child');
+          const lastLiRect = lastLi.getBoundingClientRect();
+          const lastLiCenter = $('.sticky-section_list').height() - lastLiRect.height / 2;
+          return `${lastLiCenter}px center`;
+        },
+        pin: '[data-sticky-visual="animated"]',
+        scrub: true,
+        invalidateOnRefresh: true,
+        onLeave: () => {
+          const video = dfCards.eq(dfCards.length - 1).find('video')[0];
+          playVideo(video);
+        },
+      },
+    });
+
+    // Move the header
+    setDynamicGapTop();
+
+    // Main animation setup
+    dfCards.each(function (index) {
+      const nextVideo = index < dfCards.length - 1 ? dfCards.eq(index + 1).find('video')[0] : null;
+      let isPlaying = false;
+
+      if (index !== dfCards.length - 1) {
+        dfCardsTL.to($(this), {
+          ease: 'none',
+          clipPath: 'inset(0px 0px 100%)',
+          onUpdate: function () {
+            const progress = this.progress();
+
+            if (progress >= 0.5 && !isPlaying) {
+              isPlaying = true;
+              playVideo(nextVideo);
+            }
+          },
+        });
+      }
+    });
+
+    // Utility functions
+    const handleVideoPromise = (promise) => {
+      if (promise !== undefined) {
+        return promise.catch((err) => console.warn('Video operation error:', err));
+      }
+      return Promise.resolve();
+    };
+
+    const pauseAllVideos = () => {
+      const pausePromises = [];
+      dfCards.find('video').each(function () {
+        pausePromises.push(handleVideoPromise(this.pause()));
+      });
+      return Promise.all(pausePromises);
+    };
+
+    const playVideo = (video) => {
+      if (video) {
+        return handleVideoPromise(video.play());
+      }
+      return Promise.resolve();
+    };
+
+    // Clean up function
+    return function cleanup() {
+      $(window).off('resize.dynamicGap');
+    };
+  }
+
+  /***** GSAP Resize Handle *****/
+  let cleanupFunction;
+
+  ScrollTrigger.matchMedia({
+    // desktop
+    '(min-width: 992px)': function () {
+      // Store cleanup function
+      cleanupFunction = initScrollAnimation();
+    },
+    '(max-width: 991px)': function () {
+      // Clean up when leaving desktop breakpoint
+      if (cleanupFunction) {
+        cleanupFunction();
+        cleanupFunction = null;
+      }
+    },
   });
 }
-
-// scrollflip component
+// #endregion
 
 // Init
-dfCards();
-scrollNav();
-scrollDisabler();
-animateCards();
-moveImage();
-moveTimeline();
+$(document).ready(function () {
+  scrollNav();
+  scrollDisabler();
+  trggerExternalLinks();
+  dfCards();
+});
