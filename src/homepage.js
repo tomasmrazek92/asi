@@ -128,31 +128,30 @@ function animateHPHero() {
 
   // Project the Time and Date
   function initTime() {
-    var currentDate = new Date();
-
-    // Date
-    var month = currentDate.toLocaleString('en', { month: 'short' }).toUpperCase(); // Using short month format
-    var day = currentDate.getDate();
-    var year = currentDate.getFullYear().toString(); // Getting the last two digits of the year
-
-    $('[dateDay]').text(day);
-    $('[dateMonth]').text(month);
-    $('[dateYear]').text(year);
-
-    // Time
     var { DateTime } = luxon;
 
-    function updateTime() {
-      var userLocalTime = DateTime.local();
-      var convertedTime = userLocalTime.toUTC().toFormat('HH:mm:ss');
-      $('[dataTime]').text(convertedTime);
+    function updateDateTime() {
+      // Get UTC (ZULU) date and time
+      var utcDateTime = DateTime.utc();
 
-      // Schedule the next update for the exact start of the next second
-      setTimeout(updateTime, 1000 - new Date().getMilliseconds());
+      // Format ZULU date components
+      var zuluMonth = utcDateTime.toFormat('MMM').toUpperCase(); // Short month name
+      var zuluDay = utcDateTime.toFormat('dd'); // Day of month
+      var zuluYear = utcDateTime.toFormat('yyyy'); // Full year
+      var zuluTime = utcDateTime.toFormat('HH:mm:ss'); // Time in 24-hour format
+
+      // Update the DOM elements
+      $('[dateDay]').text(zuluDay);
+      $('[dateMonth]').text(zuluMonth);
+      $('[dateYear]').text(zuluYear);
+      $('[dataTime]').text(zuluTime);
+
+      // Schedule next update at the start of next second
+      setTimeout(updateDateTime, 1000 - new Date().getMilliseconds());
     }
 
     // Initial call
-    updateTime();
+    updateDateTime();
   }
 
   // Init Reveal

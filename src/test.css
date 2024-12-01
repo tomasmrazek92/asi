@@ -1,250 +1,130 @@
-  /* Global */
-  .gcdc-gate *{
-    font-family: inherit;
-    line-height: inherit;
-    color: inherit;
-  }
+:root {
+  --cube-width: 20em; /* Cube width (4 units) */
+  --cube-height: 15em; /* Cube height (3 units) */
+  --face-depth: 0.25em; /* Depth of cube faces */
+  --negative-depth: calc(var(--face-depth) * -1); /* Negative depth for convenience */
+  --width-offset: calc(var(--cube-width) - var(--face-depth)); /* Width offset for full depth */
+  --height-offset: calc(var(--cube-height) - var(--face-depth)); /* Height offset for full depth */
+  --zDepth: 0em;
+}
 
-  /* Intro */
-  .gcdc-form-intro {
-    display:none !important;
+/* Timeline */
+@media only screen and (min-width: 992px) and (max-width: 1720px){
+  .timeline-box,
+  .legacy-timeline-flip{
+    font-size: 0.58vw;
   }
+}
+.timeline-alert {
+  animation: alertAnimation 2s infinite;
+}
 
-  /* Box */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs, .gcdc-gate .gcdc-content-render{
-    background: transparent
+@keyframes alertAnimation {
+  0%{
+    opacity: 1;
   }
+  80%{
+    opacity:1;
+  }
+  82%{
+    opacity:0;
+  }
+  99%{
+    opacity:0;
+  }
+  100%{
+    opacity:1;
+  }
+}
 
-  /* Content */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs, .gcdc-gate .gcdc-content-render{
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    grid-column-gap: 2rem;
-    grid-row-gap: 4.8rem;
-    margin: 0;
-    padding: 0;
-    max-width: none !important;
+/* Cards */
+@media only screen and (min-width: 1720px){
+  .card-wrap{
+    font-size: 1.75rem;
   }
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div, .gcdc-gate .gcdc-content-render>div{
-    margin: 0 !important;
-  }
+}
+.card-row{
+  transform: translate3d(var(--rowX), 0px, 0px) rotateX(var(--rotationX));
+  will-change: transform;
+}
+.card-row *{
+  will-change: transform;
+}
 
-  /* Field */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs.gcdc-form-double-column>div.gcdc-form-group.gcdc-form-group-halfwidth:not(.hidden), .gcdc-gate .gcdc-content-render.gcdc-form-double-column>div.gcdc-form-group.gcdc-form-group-halfwidth:not(.hidden){
-    width: 100% !important;
-  }
+.card {
+  width: var(--cube-width);
+  height: var(--cube-height);
+  transform: rotate3d(0, 1, 0, var(--angle)) translateY(var(--distance)) translateX(var(--depth)) translateZ(var(--zDepth)) ;
+  transition: none;
+}
 
-  /* Label */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group label.gcdc-form-label, .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group p.gcdc-form-block-text, .gcdc-gate .gcdc-content-render>div.gcdc-form-group label.gcdc-form-label, .gcdc-gate .gcdc-content-render>div.gcdc-form-group p.gcdc-form-block-text{
-    display:none;
-  }
+.face {
+  background: #E3E5E8;
+  border: 0.2em solid white;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  transition: transform 500ms;
+}
 
-  /* Input */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group input.gcdc-form-field, .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group textarea.gcdc-form-field, .gcdc-gate .gcdc-content-render>div.gcdc-form-group input.gcdc-form-field, .gcdc-gate .gcdc-content-render>div.gcdc-form-group textarea.gcdc-form-field,.gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group select.gcdc-form-field, .gcdc-gate .gcdc-content-render>div.gcdc-form-group select.gcdc-form-field, .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group input[name="emailAddress"].gcdc-form-field {
-    width: 100% !important;
-    height: 6.4rem !important;
-    margin-top: -1px;
-    margin-bottom: 0px;
-    padding: 1.6rem 0.8rem !important;
-    border-top-style: none;
-    border-top-width: 0px;
-    border-top-color: black;
-    border-right-style: none;
-    border-right-width: 0px;
-    border-right-color: black;
-    border-bottom-style: solid !important;
-    border-bottom-width: 1px !important;
-    border-bottom-color: white !important;
-    border-left-style: none;
-    border-left-width: 0px;
-    border-left-color: black;
-    border-radius: 0px !important;
-    background-color: transparent !important;
-    transition-property: border-color;
-    transition-duration: 450ms;
-    transition-timing-function: cubic-bezier(.215, .61, .355, 1);
-    color: white;
-    font-size: 2rem !important;
-    line-height: 1.3;
-    font-weight: 500;
-  }
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group input.gcdc-form-field:active, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group input.gcdc-form-field:hover, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"]:focus, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group select.gcdc-form-field:hover, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group select.gcdc-form-field:focus, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group input.gcdc-form-field:focus, 
-  .gcdc-gate .gcdc-content-render>div.gcdc-form-group select.gcdc-form-field:hover,
-  .gcdc-gate .gcdc-content-render>div.gcdc-form-group select.gcdc-form-field:focus, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group textarea.gcdc-form-field:active, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group textarea.gcdc-form-field:focus, 
-  .gcdc-gate .gcdc-content-render>div.gcdc-form-group input.gcdc-form-field:active, 
-  .gcdc-gate .gcdc-content-render>div.gcdc-form-group input.gcdc-form-field:focus, 
-  .gcdc-gate .gcdc-content-render>div.gcdc-form-group textarea.gcdc-form-field:active, 
-  .gcdc-gate .gcdc-content-render>div.gcdc-form-group textarea.gcdc-form-field:focus{
-    border-color: #983dd8 !important;
-    outline: none;
-    box-shadow:none;
-  }
+.front {
+  width: var(--cube-width);
+  height: var(--cube-height);
+  transform: translateZ(var(--face-depth));
+}
 
-  /* Select */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group .gcdc-form-field-wrapper.gcdc-select-wrapper, .gcdc-gate .gcdc-content-render>div.gcdc-form-group .gcdc-form-field-wrapper.gcdc-select-wrapper{
-    background: transparent;
-    overflow: visible;
-    height: 100% !important;
-  }
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group .gcdc-form-field-wrapper.gcdc-select-wrapper select, .gcdc-gate .gcdc-content-render>div.gcdc-form-group .gcdc-form-field-wrapper.gcdc-select-wrapper select, .gcdc-form-render.gcdc-form-render-AILabs .gcdc-form-field-wrapper select[name="country"]{
-    background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none"><path d="M22.332 12.9001L16.902 18.3301L11.472 12.9001" stroke="white" stroke-width="2"/></svg>') !important;
-    background-repeat: no-repeat !important;
-    background-position: right 8px center !important;
-    background-size: 3.2rem !important;
-  }
+.back {
+  width: var(--cube-width);
+  height: var(--cube-height);
+  transform: translateZ(var(--negative-depth)) rotateY(180deg);
+}
 
-  .gcdc-gate select{
-    color:white;
-  }
+.left {
+  width: calc(var(--face-depth) * 2);
+  height: var(--cube-height);
+  transform: translateX(var(--negative-depth)) rotateY(-90deg);
+}
 
-  /* Checkbox */
-  .gcdc-form-group-checkbox{
-    grid-column-end: 4;
-    grid-column-start: 1;
-    grid-row-end: 3;
-    grid-row-start: 2;
-    order: 4;
-  }
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"], .gcdc-gate .gcdc-content-render>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"] {
-    -webkit-appearance: none;
-    height: 16px !important;
-    width: 16px !important;
-    margin-top: 1px;
-    margin-right: 16px;
-    margin-bottom: 5px;
-    border: 1px solid white;
-    display: inline-block;
-    padding: 0 !important;
-    outline:none !important;
-  }
-  /* Checked */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"]:focus{
-    border-color: #983dd8 !important;
-    outline:none !important;
-  }
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group.gcdc-form-group-hasvalue input.gcdc-form-field[type="checkbox"]  {
-    border-color: #983dd8 !important;
-    background-color: #983dd8 !important;
-    outline: none;
-    background-image: url(https://d3e54v103j8qbb.cloudfront.net/static/custom-checkbox-checkmark.589d534424.svg);
-    background-position: 50%;
-    background-repeat: no-repeat;
-  }
+.right {
+  width: calc(var(--face-depth) * 2);
+  height: var(--cube-height);
+  transform: translateX(var(--width-offset)) rotateY(90deg);
+}
 
-  /* Checkbox Label */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"]+label, .gcdc-gate .gcdc-content-render>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"]+label {
-    display: inline;
-    color: #BCBBC8 !important;
-    font-size: 1.6rem !important;
-    font-style: normal;
-    font-weight: 400 !important;
-    line-height: 140% !important;
-    letter-spacing: -0.02em;
-  }
+.top {
+  width: var(--cube-width);
+  height: calc(var(--face-depth) * 2);
+  transform: translateY(var(--negative-depth)) rotateX(90deg);
+}
 
-  /* Button */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group .gcdc-form-button, .gcdc-gate .gcdc-content-render>div.gcdc-form-group .gcdc-form-button{
-    display: flex;
-    width: 100% !important;
-    padding-top: 0.8rem;
-    padding-right: 6.4rem;
-    padding-bottom: 0.8rem;
-    padding-left: 1.6rem;
-    align-items: center;
-    grid-column-gap: 1rem;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    background-color: #983dd8;
-    color: white;
-    font-size: 2rem !important;
-    font-weight: 500;
-    text-align: center;
-    height: 6.4rem;
-    text-align: left;
-    text-decoration: none;
-    text-transform: none;
-    background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M28 16.4286L4 16.4286M28 16.4286L18.5714 7M28 16.4286L18.5714 25.8571" stroke="white" stroke-width="2"/></svg>');
-    background-repeat: no-repeat;
-    background-position: calc(100% - 2rem) 50%;
-    background-size: 3.2rem;
-    transition-property: background-color;
-    transition-duration: 450ms;
-    transition-timing-function: cubic-bezier(.215,.61,.355,1);
-  }
+.bottom {
+  width: var(--cube-width);
+  height: calc(var(--face-depth) * 2);
+  transform: translateY(var(--height-offset)) rotateX(-90deg);
+}
 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group .gcdc-form-button:hover, .gcdc-gate .gcdc-content-render>div.gcdc-form-group .gcdc-form-button:hover {
-    background-color: hsla(275.2258064516129, 61.87%, 44.48%, 1.00);
-  }
+.card.middle{
+  --depth: 0em !important;
+}
+.card.middle .face.front,
+.card.middle .face.back{
+  background-image: url('data:image/svg+xml,<svg width="60" height="52" viewBox="0 0 60 52" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M60 51.4286L30 0L0 51.4286H60ZM32.1471 43.2488C31.5646 43.8267 30.8464 44.1156 29.9924 44.1156C29.1385 44.1156 28.4226 43.8267 27.8448 43.2488C27.2673 42.6713 26.9785 41.9556 26.9785 41.1017C26.9785 40.2474 27.2696 39.5242 27.8517 38.932C28.4342 38.3395 29.1524 38.0433 30.0064 38.0433C30.8603 38.0433 31.5762 38.3395 32.154 38.932C32.7315 39.5242 33.0203 40.2474 33.0203 41.1017C33.0203 41.9556 32.7292 42.6713 32.1471 43.2488ZM32.8387 34.5751H27.1601V21.0215H32.8387V34.5751Z" fill="white"/></svg>');
+  background-size: 40% auto;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
 
-  /* Success */
-  .gcdc-content-intro p {
-    display: block;
-    margin-bottom: 0px;
-    margin-top: 15px;
-    font-size: 2rem;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 20px;
-    line-height: 140%;
-    color: #00D8C6;
-    padding-left: 4rem;
-    background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none"%3E%3Cpath d="M5 17.3301L12 24.3301L27 9.33008" stroke="%2300D8C6" stroke-width="2"/%3E%3C/svg%3E');
-    background-repeat: no-repeat;
-    background-position: left center;
-    background-size: 3.2rem;
-  }
-
-  /* Error */
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group span.gcdc-form-error, .gcdc-gate .gcdc-content-render>div.gcdc-form-group span.gcdc-form-error {
-    position: static;
-    right: 0;
-    top: -21px;
-    background: none;
-    color: #fff;
-    margin-top: 1rem;
-    font-size: 1.6rem;
-    padding: 0.125rem 0 0 0.3125rem;
-    color: #bb3937;
-  }
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group-error input.gcdc-form-field, 
-  .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group-error input[name=emailAddress].gcdc-form-field{
-   border: 2px solid #D42953 !important;
-    border-bottom: 2px solid #D42953 !important;
-  }
-  .gcdc-form-render.gcdc-form-render-AILabs .gcdc-form-error::before{
-    display:none;
-  }
-
-
-  /* Respo */
-  @media only screen and (max-width: 767px){
-    .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs, .gcdc-gate .gcdc-content-render{
-      display: flex !important;
-      gap: 2rem;
-      flex-direction: column;
-    }
-  }
-
-  /* Variants */
-  .background-color-white .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group :is(input,select,textarea).gcdc-form-field,
-  .background-color-white .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group :is(input::placeholder,textarea::placeholder)
-  .background-color-white .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"], .background-color-white .gcdc-gate .gcdc-content-render>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type="checkbox"],
-  .background-color-white .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group.gcdc-form-group-checkbox input.gcdc-form-field[type=checkbox]+label{
-    border-color: black !important;
-    color: black !important;
-  }
-
-
-  .background-color-white .gcdc-gate .gcdc-form-render.gcdc-form-render-AILabs>div.gcdc-form-group .gcdc-form-field-wrapper.gcdc-select-wrapper select, .background-color-white .gcdc-gate .gcdc-content-render>div.gcdc-form-group .gcdc-form-field-wrapper.gcdc-select-wrapper select{
-    background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none"><path d="M22.332 12.9001L16.902 18.3301L11.472 12.9001" stroke="black" stroke-width="2"/></svg>') !important;
-  }
+.card.middle .face{
+  background-color: var(--fill--red);
+}
+.card.first .face{
+  background-color: #F45C5D
+}
+.cube.second .face{
+  background-color: #EBA0A2
+}
+.cube.third .face{
+  background-color: #E6CED1
+}
