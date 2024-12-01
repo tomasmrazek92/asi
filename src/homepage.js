@@ -1,5 +1,10 @@
 import { DateTime } from 'luxon';
 
+function checkIfDesktop() {
+  return $(window).width() > 991;
+}
+
+// #region Hero Animation
 function animateHPHero() {
   // --- HERO Animation
   ScrollTrigger.matchMedia({
@@ -183,10 +188,7 @@ function animateHPHero() {
 
   $video.get(0).play(); // Trigger the play event manually
 }
-
-function checkIfDesktop() {
-  return $(window).width() > 991;
-}
+// #endregion
 
 // #region Timeline Animation
 
@@ -545,15 +547,51 @@ function initVideoTabs() {
         }
       );
     }
-
     function initFirstVideo() {
       const firstVideo = videos.eq(0).get(0);
-      if (firstVideo.readyState >= 3) {
-        switchVideo(0);
-      } else {
-        $(firstVideo).one('canplay', function () {
+
+      // Force load the video first
+      firstVideo.load();
+
+      // Function to attempt playback
+      const attemptPlay = async () => {
+        try {
+          // Ensure video is muted
+          firstVideo.muted = true;
+
+          // Force preload
+          if (firstVideo.preload !== 'auto') {
+            firstVideo.preload = 'auto';
+          }
+
+          // If on mobile, we might need to manually trigger loading
+          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            // Set a small currentTime to trigger loading
+            firstVideo.currentTime = 0.1;
+          }
+
+          await firstVideo.load();
           switchVideo(0);
-        });
+        } catch (error) {
+          console.error('Error during video initialization:', error);
+        }
+      };
+
+      // Add multiple event listeners to catch when video is ready
+      const events = ['loadeddata', 'canplay', 'loadedmetadata'];
+
+      const handleVideoReady = () => {
+        // Remove all event listeners to avoid multiple triggers
+        events.forEach((event) => firstVideo.removeEventListener(event, handleVideoReady));
+        attemptPlay();
+      };
+
+      // Add all event listeners
+      events.forEach((event) => firstVideo.addEventListener(event, handleVideoReady));
+
+      // Also try immediate playback if video appears to be ready
+      if (firstVideo.readyState >= 2) {
+        attemptPlay();
       }
     }
 
