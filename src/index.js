@@ -139,7 +139,6 @@ function initLenis() {
   const { body } = document;
 
   const observer = new ResizeObserver(() => {
-    console.log('resize');
     lenis.resize();
   });
 

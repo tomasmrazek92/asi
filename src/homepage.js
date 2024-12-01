@@ -479,20 +479,15 @@ function setupTabContainer() {
 
   // Videos
   async function playVideo(state, video, index) {
-    // Add a check if video is already playing
-    if (video.playing) return;
-
     try {
-      // Store the play promise to track the state
       const playPromise = video.play();
       if (playPromise !== undefined) {
         await playPromise;
         if (state.isAutoplay) animateProgress(state, index, video);
       }
     } catch (error) {
-      // Only log errors that aren't AbortError
       if (error.name !== 'AbortError') {
-        console.error('Error playing video:', error);
+        alert('Error playing video:', error);
         handlePlayError(state, video, index);
       }
     }
@@ -520,6 +515,7 @@ function setupTabContainer() {
       $('.tabs-item_progress').hide();
       const nextIndex = (index + 1) % state.tabs.length;
       state.isAutoplayClick = true;
+      state.switchObserver(nextIndex); // Add this line to switch observer before changing tab
       state.tabs.eq(nextIndex).trigger('switchTab');
       state.isAutoplayClick = false;
     }
@@ -533,7 +529,6 @@ function setupTabContainer() {
     if (!video) return;
 
     video.currentTime = 0;
-    video.load();
 
     playVideo(state, video, index);
     state.switchObserver(index);
@@ -543,7 +538,10 @@ function setupTabContainer() {
   function setupEventListeners(state) {
     // Video end handlers
     state.videos.each((index, video) => {
-      $(video).on('ended', () => handleVideoEnd(state, index));
+      $(video).on('ended', () => {
+        console.log('Video ended', index); // Add this debug line
+        handleVideoEnd(state, index);
+      });
     });
 
     // Tab click handlers
