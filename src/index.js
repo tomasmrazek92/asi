@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
+
 // Initialize the auto video functionality
 gsap.registerPlugin(ScrollTrigger, Flip);
 
@@ -45,7 +46,8 @@ function scrollNav() {
   const handleScroll = debounce(() => {
     const currentScroll = window.scrollY;
 
-    if (currentScroll > lastScroll && currentScroll > 50 && !isScrollDisabled) {
+    const checkOpenState = navbar.find('.w--open').length >= 1;
+    if (currentScroll > lastScroll && currentScroll > 50 && !isScrollDisabled && !checkOpenState) {
       // Scroll down - hide navbar
       gsap.to(navbar, { y: '-200%', duration: 1, ease: 'power2.out' });
     } else if (currentScroll < lastScroll) {
@@ -96,6 +98,61 @@ function scrollDisabler() {
     lastWidth = currentWidth;
   }
   window.addEventListener('resize', checkBreakpoints);
+}
+
+// #endregion
+
+// #region Lenis
+
+function initLenis() {
+  let lenis;
+  if (Webflow.env('editor') === undefined) {
+    lenis = new Lenis({
+      lerp: 0.075,
+      wheelMultiplier: 0.7,
+      gestureOrientation: 'vertical',
+      normalizeWheel: false,
+      smoothTouch: false,
+    });
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }
+  $('[data-lenis-start]').on('click', function () {
+    lenis.start();
+  });
+  $('[data-lenis-stop]').on('click', function () {
+    lenis.stop();
+  });
+  $('[data-lenis-toggle]').on('click', function () {
+    $(this).toggleClass('stop-scroll');
+    if ($(this).hasClass('stop-scroll')) {
+      lenis.stop();
+    } else {
+      lenis.start();
+    }
+  });
+
+  // Watch for height changes in the body element
+  const { body } = document;
+
+  const observer = new ResizeObserver(() => {
+    console.log('resize');
+    lenis.resize();
+  });
+
+  // Start observing the body
+  observer.observe(body);
+
+  // Lenis animation loop
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+
+  requestAnimationFrame(raf);
 }
 
 // #endregion
@@ -278,6 +335,7 @@ function dfCards() {
 $(document).ready(function () {
   scrollNav();
   scrollDisabler();
+  initLenis();
   trggerExternalLinks();
   dfCards();
 });
