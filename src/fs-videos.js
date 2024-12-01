@@ -1,5 +1,3 @@
-/* eslint-disable no-return-assign */
-/* eslint-disable @typescript-eslint/no-empty-function */
 export function initAutoVideo() {
   'use strict';
   (() => {
@@ -87,6 +85,9 @@ export function initAutoVideo() {
       src: { key: 'src', values: { finsweet: '@finsweet/attributes' } },
       dev: { key: `${a}-dev` },
     };
+
+    // Fix: Declare variables before destructuring
+    var f, z;
     [f, z] = I(p);
 
     var _ = (o) => {
@@ -180,27 +181,26 @@ export function initAutoVideo() {
       if (!o.length) return;
 
       let e = new Map(),
-        i = new IntersectionObserver((t) => {
-          for (let { target: r, isIntersecting: n } of t) {
-            // Skip videos with data-exclude-autovideo attribute
-            if (
-              r instanceof HTMLVideoElement &&
-              !r.hasAttribute('data-exclude-autovideo') &&
-              !r.parentElement.hasAttribute('data-exclude-autovideo')
-            ) {
-              n ? r.play() : r.pause();
-              e.set(r, n);
+        i = new IntersectionObserver(
+          (t) => {
+            for (let { target: r, isIntersecting: n } of t) {
+              if (
+                r instanceof HTMLVideoElement &&
+                !r.hasAttribute('data-exclude-autovideo') &&
+                !r.closest('[data-exclude-autovideo]')
+              ) {
+                n ? r.play().catch(() => {}) : r.pause();
+                e.set(r, n);
+              }
             }
-          }
-        }, {});
+          },
+          { threshold: 0.1 }
+        );
 
       for (let t of o) {
-        // Only set up intersection observer for non-excluded videos
-        if (
-          !t.hasAttribute('data-exclude-autovideo') &&
-          !t.parentElement.hasAttribute('data-exclude-autovideo')
-        ) {
+        if (!t.hasAttribute('data-exclude-autovideo') && !t.closest('[data-exclude-autovideo]')) {
           t.autoplay = false;
+          t.playsInline = true;
           e.set(t, null);
           i.observe(t);
         }
@@ -208,12 +208,8 @@ export function initAutoVideo() {
 
       let s = b(document, 'visibilitychange', () => {
         for (let [t, r] of e) {
-          // Skip excluded videos
-          if (
-            !t.hasAttribute('data-exclude-autovideo') &&
-            !t.parentElement.hasAttribute('data-exclude-autovideo')
-          ) {
-            document.hidden || !r ? t.pause() : t.play();
+          if (!t.hasAttribute('data-exclude-autovideo') && !t.closest('[data-exclude-autovideo]')) {
+            document.hidden || !r ? t.pause() : t.play().catch(() => {});
           }
         }
       });

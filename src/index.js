@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 
+import { initAutoVideo } from './fs-videos';
+
 // Initialize the auto video functionality
 gsap.registerPlugin(ScrollTrigger, Flip);
 
@@ -336,4 +338,5 @@ $(document).ready(function () {
   initLenis();
   trggerExternalLinks();
   dfCards();
+  initAutoVideo();
 });
