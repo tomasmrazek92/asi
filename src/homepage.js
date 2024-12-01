@@ -483,9 +483,6 @@ function setupTabContainer() {
     if (video.playing) return;
 
     try {
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        video.currentTime = 0.1;
-      }
       // Store the play promise to track the state
       const playPromise = video.play();
       if (playPromise !== undefined) {
