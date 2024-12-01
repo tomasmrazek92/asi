@@ -490,7 +490,6 @@ function initVideoTabs() {
         300
       );
     }
-
     function switchVideo(index, manual = false) {
       if (manual && isAutoplay && !isAutoplayClick) {
         isAutoplay = false;
@@ -502,7 +501,6 @@ function initVideoTabs() {
         });
       }
 
-      // Pause all other videos
       videos.each(function () {
         this.pause();
       });
@@ -518,22 +516,17 @@ function initVideoTabs() {
       const video = videos.eq(index).get(0);
       if (!video) return;
 
-      // Reset video state
       video.currentTime = 0;
       video.muted = true;
 
-      // Force load the video
       video.load();
 
-      // Function to attempt playback
       const attemptPlay = async () => {
         try {
-          // If on mobile, we might need to manually trigger loading
           if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             video.currentTime = 0.1;
           }
 
-          // Attempt to play
           const playPromise = video.play();
           if (playPromise !== undefined) {
             await playPromise;
@@ -541,8 +534,6 @@ function initVideoTabs() {
           }
         } catch (error) {
           console.error('Error playing video:', error);
-
-          // If autoplay fails, try playing on user interaction
           $(video).one('touchend click', async function () {
             try {
               await video.play();
@@ -554,24 +545,53 @@ function initVideoTabs() {
         }
       };
 
-      // Add multiple event listeners to catch when video is ready
       const events = ['loadeddata', 'canplay', 'loadedmetadata'];
 
       const handleVideoReady = () => {
-        // Remove all event listeners to avoid multiple triggers
         events.forEach((event) => video.removeEventListener(event, handleVideoReady));
         attemptPlay();
       };
 
-      // Add all event listeners
       events.forEach((event) => video.addEventListener(event, handleVideoReady));
 
-      // Also try immediate playback if video appears to be ready
       if (video.readyState >= 2) {
         attemptPlay();
       }
 
       scrollTabIntoView(index);
+    }
+
+    function initFirstVideo() {
+      const firstVideo = videos.eq(0).get(0);
+      if (!firstVideo) return;
+
+      firstVideo.muted = true;
+      firstVideo.setAttribute('playsinline', '');
+      firstVideo.load();
+
+      const attemptFirstPlay = async () => {
+        try {
+          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            firstVideo.currentTime = 0.1;
+          }
+          switchVideo(0);
+        } catch (error) {
+          console.error('Error initializing first video:', error);
+        }
+      };
+
+      const events = ['loadeddata', 'canplay', 'loadedmetadata'];
+
+      const handleFirstVideoReady = () => {
+        events.forEach((event) => firstVideo.removeEventListener(event, handleFirstVideoReady));
+        attemptFirstPlay();
+      };
+
+      events.forEach((event) => firstVideo.addEventListener(event, handleFirstVideoReady));
+
+      if (firstVideo.readyState >= 2) {
+        attemptFirstPlay();
+      }
     }
 
     function animateProgress(index, video) {
@@ -588,17 +608,6 @@ function initVideoTabs() {
           transformOrigin: 'left center',
         }
       );
-    }
-
-    function initFirstVideo() {
-      const firstVideo = videos.eq(0).get(0);
-      if (firstVideo.readyState >= 3) {
-        switchVideo(0);
-      } else {
-        $(firstVideo).one('canplay', function () {
-          switchVideo(0);
-        });
-      }
     }
 
     videos.each(function (index) {
