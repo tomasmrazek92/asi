@@ -473,25 +473,37 @@ function setupTabContainer() {
 
   if (!state.videos.length) return;
 
+  async function preloadVideos(state) {
+    try {
+      const loadPromises = state.videos
+        .map((index, video) => {
+          return new Promise((resolve) => {
+            if (video.readyState >= 2) {
+              resolve();
+              return;
+            }
+            const handleLoaded = () => {
+              video.removeEventListener('loadeddata', handleLoaded);
+              resolve();
+            };
+            video.addEventListener('loadeddata', handleLoaded);
+            video.load();
+          });
+        })
+        .get();
+
+      await Promise.all(loadPromises);
+    } catch (error) {
+      console.error('Error preloading videos:', error);
+    }
+  }
+
   setupEventListeners(state);
   setupIntersectionObserver(state);
 
   // Videos
   async function playVideo(state, video, index) {
     try {
-      // Wait for video to be ready
-      if (video.readyState < 2) {
-        // HAVE_CURRENT_DATA
-        await new Promise((resolve) => {
-          const handleLoaded = () => {
-            video.removeEventListener('loadeddata', handleLoaded);
-            resolve();
-          };
-          video.addEventListener('loadeddata', handleLoaded);
-          video.load();
-        });
-      }
-
       const playPromise = video.play();
       if (playPromise !== undefined) {
         await playPromise;
@@ -615,10 +627,16 @@ function setupTabContainer() {
 
   // Init
   function setupIntersectionObserver(state) {
+    let hasPreloaded = false;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            if (!hasPreloaded) {
+              hasPreloaded = true;
+              preloadVideos(state);
+            }
             resumeVideo(state);
           } else {
             pauseAllVideos(state);
@@ -628,10 +646,8 @@ function setupTabContainer() {
       { threshold: 0.2 }
     );
 
-    // Initially observe first visual
     observer.observe(state.visuals[0]);
 
-    // Update observer when switching videos
     state.switchObserver = (index) => {
       observer.disconnect();
       observer.observe(state.visuals[index]);
