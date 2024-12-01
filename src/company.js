@@ -23,8 +23,11 @@ function initSplit() {
     });
 
     $('[data-mission-text] .word').each(function (index) {
+      let isHighlight = $(this).closest('[data-highlight-red]').length;
       tl.to($(this), {
-        color: 'black',
+        color: () => {
+          return isHighlight ? 'red' : 'black';
+        },
         duration: 0.2,
         ease: 'none',
       });
