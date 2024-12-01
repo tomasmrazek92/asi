@@ -480,6 +480,19 @@ function setupTabContainer() {
   // Videos
   async function playVideo(state, video, index) {
     try {
+      // Wait for video to be ready
+      if (video.readyState < 2) {
+        // HAVE_CURRENT_DATA
+        await new Promise((resolve) => {
+          const handleLoaded = () => {
+            video.removeEventListener('loadeddata', handleLoaded);
+            resolve();
+          };
+          video.addEventListener('loadeddata', handleLoaded);
+          video.load();
+        });
+      }
+
       const playPromise = video.play();
       if (playPromise !== undefined) {
         await playPromise;
