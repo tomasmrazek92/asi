@@ -425,7 +425,7 @@ function moveImage() {
       tl.to(
         [mask, heading],
         {
-          y: '-80rem',
+          y: '-76rem',
           ease: 'none',
         },
         '<'
@@ -433,7 +433,7 @@ function moveImage() {
       tl.to(
         mask,
         {
-          height: '70%',
+          height: '80%',
         },
         '<'
       );
@@ -456,196 +456,206 @@ function moveImage() {
 
 // #region tabVideos
 function initVideoTabs() {
-  $('.w-tabs').each(function () {
-    const tabsContainer = $(this);
-    const tabsSection = tabsContainer.closest('.section');
-    const tabs = tabsContainer.find('.tabs-item');
-    const videos = tabsContainer.find('.tabs-visual video');
-    const tabsMenu = tabs.parent();
-    let isAutoplay = true;
-    let isAutoplayClick = false;
+  $('.w-tabs').each(setupTabContainer);
+}
 
-    if (!videos.length) return;
+function setupTabContainer() {
+  const state = {
+    tabsContainer: $(this),
+    tabsSection: $(this).closest('.section'),
+    tabs: $(this).find('.tabs-item'),
+    videos: $(this).find('.tabs-visual video'),
+    tabsMenu: $(this).find('.tabs-item').parent(),
+    isAutoplay: true,
+    isAutoplayClick: false,
+    currentVideoIndex: 0,
+  };
 
-    function scrollTabIntoView(index) {
-      const activeTab = tabs.eq(index);
-      const scrollContainer = tabsMenu;
-      const GAP = parseInt(window.getComputedStyle(tabsSection[0]).paddingLeft);
+  if (!state.videos.length) return;
 
-      // Get the absolute position by adding current scroll position
-      const currentScroll = scrollContainer.scrollLeft();
-      const tabOffset = activeTab.position().left + currentScroll;
+  initVideos(state);
+  setupEventListeners(state);
+  setupIntersectionObserver(state);
+}
 
-      // Calculate target scroll position
-      const targetScroll = tabOffset - GAP;
-
-      // Ensure we don't scroll past the start
-      const finalScroll = Math.max(0, targetScroll);
-
-      scrollContainer.animate(
-        {
-          scrollLeft: finalScroll,
-        },
-        300
-      );
-    }
-    function switchVideo(index, manual = false) {
-      if (manual && isAutoplay && !isAutoplayClick) {
-        isAutoplay = false;
-        videos.each(function () {
-          this.loop = true;
-        });
-        tabs.each(function () {
-          $(this).find('.tabs-item_progress').hide();
-        });
-      }
-
-      videos.each(function () {
-        this.pause();
-      });
-
-      if (isAutoplay) {
-        tabs.each(function () {
-          const progressBar = $(this).find('.tabs-item_progress');
-          gsap.killTweensOf(progressBar);
-          gsap.set(progressBar, { scaleX: 0 });
-        });
-      }
-
-      const video = videos.eq(index).get(0);
-      if (!video) return;
-
-      video.currentTime = 0;
-      video.muted = true;
-
-      video.load();
-
-      const attemptPlay = async () => {
-        try {
-          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            video.currentTime = 0.1;
-          }
-
-          const playPromise = video.play();
-          if (playPromise !== undefined) {
-            await playPromise;
-            if (isAutoplay) animateProgress(index, video);
-          }
-        } catch (error) {
-          console.error('Error playing video:', error);
-          $(video).one('touchend click', async function () {
-            try {
-              await video.play();
-              if (isAutoplay) animateProgress(index, video);
-            } catch (err) {
-              console.error('Failed to play after user interaction:', err);
-            }
-          });
-        }
-      };
-
-      const events = ['loadeddata', 'canplay', 'loadedmetadata'];
-
-      const handleVideoReady = () => {
-        events.forEach((event) => video.removeEventListener(event, handleVideoReady));
-        attemptPlay();
-      };
-
-      events.forEach((event) => video.addEventListener(event, handleVideoReady));
-
-      if (video.readyState >= 2) {
-        attemptPlay();
-      }
-
-      scrollTabIntoView(index);
-    }
-
-    function initFirstVideo() {
-      const firstVideo = videos.eq(0).get(0);
-      if (!firstVideo) return;
-
-      firstVideo.muted = true;
-      firstVideo.setAttribute('playsinline', '');
-      firstVideo.load();
-
-      const attemptFirstPlay = async () => {
-        try {
-          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            firstVideo.currentTime = 0.1;
-          }
-          switchVideo(0);
-        } catch (error) {
-          console.error('Error initializing first video:', error);
-        }
-      };
-
-      const events = ['loadeddata', 'canplay', 'loadedmetadata'];
-
-      const handleFirstVideoReady = () => {
-        events.forEach((event) => firstVideo.removeEventListener(event, handleFirstVideoReady));
-        attemptFirstPlay();
-      };
-
-      events.forEach((event) => firstVideo.addEventListener(event, handleFirstVideoReady));
-
-      if (firstVideo.readyState >= 2) {
-        attemptFirstPlay();
-      }
-    }
-
-    function animateProgress(index, video) {
-      if (!isAutoplay) return;
-
-      const progressBar = tabs.eq(index).find('.tabs-item_progress');
-      gsap.fromTo(
-        progressBar,
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          duration: video.duration,
-          ease: 'none',
-          transformOrigin: 'left center',
-        }
-      );
-    }
-
-    videos.each(function (index) {
-      $(this).on('ended', function () {
-        if (isAutoplay) {
-          const nextIndex = (index + 1) % tabs.length;
-          isAutoplayClick = true;
-          tabs.eq(nextIndex).trigger('switchTab');
-          isAutoplayClick = false;
-        }
-      });
-    });
-
-    tabs.on('click', function (event) {
-      event.stopPropagation();
-      const clickedIndex = $(this).index();
-      switchVideo(clickedIndex, true);
-    });
-
-    tabs.on('switchTab', function () {
-      $(this).click();
-    });
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            initFirstVideo();
-            observer.disconnect();
-          }
-        });
-      },
-      {
-        threshold: 0.2,
-      }
-    );
-
-    observer.observe(videos[0]);
+function initVideos(state) {
+  state.videos.each(function () {
+    this.muted = true;
+    this.setAttribute('playsinline', '');
   });
+
+  initFirstVideo(state);
+}
+
+// Videos
+async function playVideo(state, video, index) {
+  try {
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      video.currentTime = 0.1;
+    }
+    await video.play();
+    if (state.isAutoplay) animateProgress(state, index, video);
+  } catch (error) {
+    console.error('Error playing video:', error);
+    handlePlayError(state, video, index);
+  }
+}
+function pauseAllVideos(state) {
+  state.videos.each(function () {
+    this.pause();
+  });
+
+  if (state.isAutoplay) {
+    state.tabs.each(function () {
+      const progressBar = $(this).find('.tabs-item_progress');
+      gsap.killTweensOf(progressBar);
+    });
+  }
+}
+function resumeVideo(state) {
+  const video = state.videos.eq(state.currentVideoIndex).get(0);
+  if (!video) return;
+
+  playVideo(state, video, state.currentVideoIndex);
+}
+function handleVideoEnd(state, index) {
+  if (state.isAutoplay) {
+    $('.tabs-item_progress').hide();
+    const nextIndex = (index + 1) % state.tabs.length;
+    state.isAutoplayClick = true;
+    state.tabs.eq(nextIndex).trigger('switchTab');
+    state.isAutoplayClick = false;
+  }
+}
+
+function switchVideo(state, index) {
+  state.currentVideoIndex = index;
+  pauseAllVideos(state);
+
+  const video = state.videos.eq(index).get(0);
+  if (!video) return;
+
+  video.currentTime = 0;
+  video.muted = true;
+  video.load();
+
+  playVideo(state, video, index);
+  scrollTabIntoView(state, index);
+}
+
+// Events
+function setupEventListeners(state) {
+  // Video end handlers
+  state.videos.each((index, video) => {
+    $(video).on('ended', () => handleVideoEnd(state, index));
+  });
+
+  // Tab click handlers
+  state.tabs.on('click', (event) => {
+    event.stopPropagation();
+    handleTabClick(state, $(event.currentTarget).index());
+  });
+
+  state.tabs.on('switchTab', function () {
+    $(this).click();
+  });
+}
+function handleTabClick(state, index, manual = true) {
+  if (manual && state.isAutoplay && !state.isAutoplayClick) {
+    disableAutoplay(state);
+  }
+  switchVideo(state, index);
+}
+
+function disableAutoplay(state) {
+  state.isAutoplay = false;
+  state.videos.each(function () {
+    this.loop = true;
+  });
+  state.tabs.each(function () {
+    $(this).find('.tabs-item_progress').hide();
+  });
+}
+
+function handlePlayError(state, video, index) {
+  $(video).one('touchend click', async function () {
+    try {
+      await video.play();
+      if (state.isAutoplay) animateProgress(state, index, video);
+    } catch (err) {
+      console.error('Failed to play after user interaction:', err);
+    }
+  });
+}
+
+function animateProgress(state, index, video) {
+  if (!state.isAutoplay) return;
+
+  const progressBar = state.tabs.eq(index).find('.tabs-item_progress');
+  progressBar.show(); // Ensure progress bar is visible
+
+  gsap.fromTo(
+    progressBar,
+    { scaleX: video.currentTime / video.duration },
+    {
+      scaleX: 1,
+      duration: video.duration - video.currentTime,
+      ease: 'none',
+      transformOrigin: 'left center',
+      onComplete: () => progressBar.hide(), // Hide progress bar when animation completes
+    }
+  );
+}
+
+function scrollTabIntoView(state, index) {
+  const activeTab = state.tabs.eq(index);
+  const scrollContainer = state.tabsMenu;
+  const GAP = parseInt(window.getComputedStyle(state.tabsSection[0]).paddingLeft);
+  const currentScroll = scrollContainer.scrollLeft();
+  const tabOffset = activeTab.position().left + currentScroll;
+  const targetScroll = tabOffset - GAP;
+  const finalScroll = Math.max(0, targetScroll);
+
+  scrollContainer.animate({ scrollLeft: finalScroll }, 300);
+}
+
+// Init
+function initFirstVideo(state) {
+  const firstVideo = state.videos.eq(0).get(0);
+  if (!firstVideo) return;
+
+  firstVideo.load();
+  if (firstVideo.readyState >= 2) {
+    switchVideo(state, 0);
+  } else {
+    const events = ['loadeddata', 'canplay', 'loadedmetadata'];
+    const handleFirstVideoReady = () => {
+      events.forEach((event) => firstVideo.removeEventListener(event, handleFirstVideoReady));
+      switchVideo(state, 0);
+    };
+    events.forEach((event) => firstVideo.addEventListener(event, handleFirstVideoReady));
+  }
+}
+function setupIntersectionObserver(state) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const currentVideo = state.videos.eq(state.currentVideoIndex).get(0);
+          if (currentVideo) {
+            resumeVideo(state);
+          } else {
+            initFirstVideo(state);
+          }
+        } else {
+          pauseAllVideos(state);
+        }
+      });
+    },
+    { threshold: 0.2 }
+  );
+
+  observer.observe(state.tabsContainer[0]);
 }
 
 // #endregion
