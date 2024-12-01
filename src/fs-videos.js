@@ -1,3 +1,5 @@
+/* eslint-disable no-return-assign */
+/* eslint-disable @typescript-eslint/no-empty-function */
 export function initAutoVideo() {
   'use strict';
   (() => {

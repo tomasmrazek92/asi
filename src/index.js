@@ -4,6 +4,7 @@
 gsap.registerPlugin(ScrollTrigger, Flip);
 
 // Global Scope
+let lenis;
 var isScrollDisabled = false;
 
 function debounce(func, wait) {
@@ -35,6 +36,59 @@ function trggerExternalLinks() {
     }
   }
 }
+
+// #region Lenis
+
+function initLenis() {
+  if (Webflow.env('editor') === undefined) {
+    lenis = new Lenis({
+      lerp: 0.075,
+      wheelMultiplier: 0.7,
+      gestureOrientation: 'vertical',
+      normalizeWheel: false,
+      smoothTouch: false,
+    });
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }
+  $('[data-lenis-start]').on('click', function () {
+    lenis.start();
+  });
+  $('[data-lenis-stop]').on('click', function () {
+    lenis.stop();
+  });
+  $('[data-lenis-toggle]').on('click', function () {
+    $(this).toggleClass('stop-scroll');
+    if ($(this).hasClass('stop-scroll')) {
+      lenis.stop();
+    } else {
+      lenis.start();
+    }
+  });
+
+  // Watch for height changes in the body element
+  const { body } = document;
+
+  const observer = new ResizeObserver(() => {
+    lenis.resize();
+  });
+
+  // Start observing the body
+  observer.observe(body);
+
+  // Lenis animation loop
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+
+  requestAnimationFrame(raf);
+}
+
+// #endregion
 
 // #region nav
 function scrollNav() {
@@ -102,67 +156,12 @@ function scrollDisabler() {
 
 // #endregion
 
-// #region Lenis
-
-function initLenis() {
-  let lenis;
-  if (Webflow.env('editor') === undefined) {
-    lenis = new Lenis({
-      lerp: 0.075,
-      wheelMultiplier: 0.7,
-      gestureOrientation: 'vertical',
-      normalizeWheel: false,
-      smoothTouch: false,
-    });
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-  }
-  $('[data-lenis-start]').on('click', function () {
-    lenis.start();
-  });
-  $('[data-lenis-stop]').on('click', function () {
-    lenis.stop();
-  });
-  $('[data-lenis-toggle]').on('click', function () {
-    $(this).toggleClass('stop-scroll');
-    if ($(this).hasClass('stop-scroll')) {
-      lenis.stop();
-    } else {
-      lenis.start();
-    }
-  });
-
-  // Watch for height changes in the body element
-  const { body } = document;
-
-  const observer = new ResizeObserver(() => {
-    lenis.resize();
-  });
-
-  // Start observing the body
-  observer.observe(body);
-
-  // Lenis animation loop
-  function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-
-  requestAnimationFrame(raf);
-}
-
-// #endregion
-
 // #region dfCards
 function dfCards() {
   let dfCardsTL;
   let scrollTriggerInstance;
 
   ScrollTrigger.defaults({
-    markers: true,
     anticipatePin: 1,
     ease: 'none',
   });

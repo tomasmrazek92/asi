@@ -22,7 +22,6 @@ function animateHPHero() {
             start: 'top top',
             end: '80% center',
             scrub: 0.2,
-            markers: true,
             immediateRender: true,
             invalidateOnRefresh: true,
           },
