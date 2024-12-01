@@ -464,7 +464,8 @@ function setupTabContainer() {
     tabsContainer: $(this),
     tabsSection: $(this).closest('.section'),
     tabs: $(this).find('.tabs-item'),
-    videos: $(this).find('.tabs-visual video'),
+    visuals: $(this).find('.tabs-visual'),
+    videos: $(this).find('video'),
     tabsMenu: $(this).find('.tabs-item').parent(),
     isAutoplay: true,
     isAutoplayClick: false,
@@ -473,189 +474,162 @@ function setupTabContainer() {
 
   if (!state.videos.length) return;
 
-  initVideos(state);
   setupEventListeners(state);
   setupIntersectionObserver(state);
-}
 
-function initVideos(state) {
-  state.videos.each(function () {
-    this.muted = true;
-    this.setAttribute('playsinline', '');
-  });
+  // Videos
+  async function playVideo(state, video, index) {
+    // Add a check if video is already playing
+    if (video.playing) return;
 
-  initFirstVideo(state);
-}
-
-// Videos
-async function playVideo(state, video, index) {
-  try {
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      video.currentTime = 0.1;
+    try {
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        video.currentTime = 0.1;
+      }
+      // Store the play promise to track the state
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+        if (state.isAutoplay) animateProgress(state, index, video);
+      }
+    } catch (error) {
+      // Only log errors that aren't AbortError
+      if (error.name !== 'AbortError') {
+        console.error('Error playing video:', error);
+        handlePlayError(state, video, index);
+      }
     }
-    await video.play();
-    if (state.isAutoplay) animateProgress(state, index, video);
-  } catch (error) {
-    console.error('Error playing video:', error);
-    handlePlayError(state, video, index);
   }
-}
-function pauseAllVideos(state) {
-  state.videos.each(function () {
-    this.pause();
-  });
+  function pauseAllVideos(state) {
+    state.videos.each(function () {
+      this.pause();
+    });
 
-  if (state.isAutoplay) {
-    state.tabs.each(function () {
-      const progressBar = $(this).find('.tabs-item_progress');
-      gsap.killTweensOf(progressBar);
+    if (state.isAutoplay) {
+      state.tabs.each(function () {
+        const progressBar = $(this).find('.tabs-item_progress');
+        gsap.killTweensOf(progressBar);
+      });
+    }
+  }
+  function resumeVideo(state) {
+    const video = state.videos.eq(state.currentVideoIndex).get(0);
+    if (!video) return;
+
+    playVideo(state, video, state.currentVideoIndex);
+  }
+  function handleVideoEnd(state, index) {
+    if (state.isAutoplay) {
+      $('.tabs-item_progress').hide();
+      const nextIndex = (index + 1) % state.tabs.length;
+      state.isAutoplayClick = true;
+      state.tabs.eq(nextIndex).trigger('switchTab');
+      state.isAutoplayClick = false;
+    }
+  }
+
+  function switchVideo(state, index) {
+    state.currentVideoIndex = index;
+    pauseAllVideos(state);
+
+    const video = state.videos.eq(index).get(0);
+    if (!video) return;
+
+    video.currentTime = 0;
+    video.load();
+
+    playVideo(state, video, index);
+    state.switchObserver(index);
+  }
+
+  // Events
+  function setupEventListeners(state) {
+    // Video end handlers
+    state.videos.each((index, video) => {
+      $(video).on('ended', () => handleVideoEnd(state, index));
+    });
+
+    // Tab click handlers
+    state.tabs.on('click', (event) => {
+      event.stopPropagation();
+      handleTabClick(state, $(event.currentTarget).index());
+    });
+
+    state.tabs.on('switchTab', function () {
+      $(this).click();
     });
   }
-}
-function resumeVideo(state) {
-  const video = state.videos.eq(state.currentVideoIndex).get(0);
-  if (!video) return;
-
-  playVideo(state, video, state.currentVideoIndex);
-}
-function handleVideoEnd(state, index) {
-  if (state.isAutoplay) {
-    $('.tabs-item_progress').hide();
-    const nextIndex = (index + 1) % state.tabs.length;
-    state.isAutoplayClick = true;
-    state.tabs.eq(nextIndex).trigger('switchTab');
-    state.isAutoplayClick = false;
-  }
-}
-
-function switchVideo(state, index) {
-  state.currentVideoIndex = index;
-  pauseAllVideos(state);
-
-  const video = state.videos.eq(index).get(0);
-  if (!video) return;
-
-  video.currentTime = 0;
-  video.muted = true;
-  video.load();
-
-  playVideo(state, video, index);
-  scrollTabIntoView(state, index);
-}
-
-// Events
-function setupEventListeners(state) {
-  // Video end handlers
-  state.videos.each((index, video) => {
-    $(video).on('ended', () => handleVideoEnd(state, index));
-  });
-
-  // Tab click handlers
-  state.tabs.on('click', (event) => {
-    event.stopPropagation();
-    handleTabClick(state, $(event.currentTarget).index());
-  });
-
-  state.tabs.on('switchTab', function () {
-    $(this).click();
-  });
-}
-function handleTabClick(state, index, manual = true) {
-  if (manual && state.isAutoplay && !state.isAutoplayClick) {
-    disableAutoplay(state);
-  }
-  switchVideo(state, index);
-}
-
-function disableAutoplay(state) {
-  state.isAutoplay = false;
-  state.videos.each(function () {
-    this.loop = true;
-  });
-  state.tabs.each(function () {
-    $(this).find('.tabs-item_progress').hide();
-  });
-}
-
-function handlePlayError(state, video, index) {
-  $(video).one('touchend click', async function () {
-    try {
-      await video.play();
-      if (state.isAutoplay) animateProgress(state, index, video);
-    } catch (err) {
-      console.error('Failed to play after user interaction:', err);
+  function handleTabClick(state, index, manual = true) {
+    if (manual && state.isAutoplay && !state.isAutoplayClick) {
+      disableAutoplay(state);
     }
-  });
-}
-
-function animateProgress(state, index, video) {
-  if (!state.isAutoplay) return;
-
-  const progressBar = state.tabs.eq(index).find('.tabs-item_progress');
-  progressBar.show(); // Ensure progress bar is visible
-
-  gsap.fromTo(
-    progressBar,
-    { scaleX: video.currentTime / video.duration },
-    {
-      scaleX: 1,
-      duration: video.duration - video.currentTime,
-      ease: 'none',
-      transformOrigin: 'left center',
-      onComplete: () => progressBar.hide(), // Hide progress bar when animation completes
-    }
-  );
-}
-
-function scrollTabIntoView(state, index) {
-  const activeTab = state.tabs.eq(index);
-  const scrollContainer = state.tabsMenu;
-  const GAP = parseInt(window.getComputedStyle(state.tabsSection[0]).paddingLeft);
-  const currentScroll = scrollContainer.scrollLeft();
-  const tabOffset = activeTab.position().left + currentScroll;
-  const targetScroll = tabOffset - GAP;
-  const finalScroll = Math.max(0, targetScroll);
-
-  scrollContainer.animate({ scrollLeft: finalScroll }, 300);
-}
-
-// Init
-function initFirstVideo(state) {
-  const firstVideo = state.videos.eq(0).get(0);
-  if (!firstVideo) return;
-
-  firstVideo.load();
-  if (firstVideo.readyState >= 2) {
-    switchVideo(state, 0);
-  } else {
-    const events = ['loadeddata', 'canplay', 'loadedmetadata'];
-    const handleFirstVideoReady = () => {
-      events.forEach((event) => firstVideo.removeEventListener(event, handleFirstVideoReady));
-      switchVideo(state, 0);
-    };
-    events.forEach((event) => firstVideo.addEventListener(event, handleFirstVideoReady));
+    switchVideo(state, index);
   }
-}
-function setupIntersectionObserver(state) {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const currentVideo = state.videos.eq(state.currentVideoIndex).get(0);
-          if (currentVideo) {
+
+  function disableAutoplay(state) {
+    state.isAutoplay = false;
+    state.videos.each(function () {
+      this.loop = true;
+    });
+    state.tabs.each(function () {
+      $(this).find('.tabs-item_progress').hide();
+    });
+  }
+
+  function handlePlayError(state, video, index) {
+    $(video).one('touchend click', async function () {
+      try {
+        await video.play();
+        if (state.isAutoplay) animateProgress(state, index, video);
+      } catch (err) {
+        console.error('Failed to play after user interaction:', err);
+      }
+    });
+  }
+
+  function animateProgress(state, index, video) {
+    if (!state.isAutoplay) return;
+
+    const progressBar = state.tabs.eq(index).find('.tabs-item_progress');
+    progressBar.show(); // Ensure progress bar is visible
+
+    gsap.fromTo(
+      progressBar,
+      { scaleX: video.currentTime / video.duration },
+      {
+        scaleX: 1,
+        duration: video.duration - video.currentTime,
+        ease: 'none',
+        transformOrigin: 'left center',
+        onComplete: () => progressBar.hide(), // Hide progress bar when animation completes
+      }
+    );
+  }
+
+  // Init
+  function setupIntersectionObserver(state) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
             resumeVideo(state);
           } else {
-            initFirstVideo(state);
+            pauseAllVideos(state);
           }
-        } else {
-          pauseAllVideos(state);
-        }
-      });
-    },
-    { threshold: 0.2 }
-  );
+        });
+      },
+      { threshold: 0.2 }
+    );
 
-  observer.observe(state.tabsContainer[0]);
+    // Initially observe first visual
+    observer.observe(state.visuals[0]);
+
+    // Update observer when switching videos
+    state.switchObserver = (index) => {
+      observer.disconnect();
+      observer.observe(state.visuals[index]);
+    };
+  }
 }
 
 // #endregion
