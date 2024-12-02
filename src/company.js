@@ -1,26 +1,83 @@
 function initSplit() {
   let typeSplit;
   let tl;
-  let windowWidth = $(window).innerWidth();
-  const desktopBreakpoint = 992;
+  let scrollTriggerInstance;
 
   // Split the text up
   function runSplit() {
+    // Revert any existing split before creating a new one
+    if (typeSplit) {
+      typeSplit.revert();
+    }
+
     typeSplit = new SplitType('[data-mission-text]', {
-      types: 'words, chars',
+      types: 'words',
     });
+  }
+
+  // Get scroll trigger settings based on current breakpoint
+  function getScrollTriggerSettings() {
+    const width = window.innerWidth;
+
+    if (width < 768) {
+      // Mobile
+      return {
+        start: 'top center',
+        end: 'bottom center',
+      };
+    }
+    if (width < 1024) {
+      // Tablet
+      return {
+        start: 'top 60%',
+        end: 'bottom 40%',
+      };
+    } // Desktop
+    return {
+      start: 'center bottom',
+      end: 'bottom center',
+    };
+  }
+
+  // Clean up existing animations and splits
+  function cleanup() {
+    // Kill specific ScrollTrigger instance if it exists
+    if (scrollTriggerInstance) {
+      scrollTriggerInstance.kill();
+    }
+
+    // Kill GSAP timeline if it exists
+    if (tl) {
+      tl.kill();
+    }
+
+    // Reset crosshair properties
+    gsap.set('.company_crosshair', {
+      clearProps: 'all',
+    });
+
+    // Revert split text if it exists
+    if (typeSplit) {
+      typeSplit.revert();
+    }
   }
 
   // Create the animation
   function createAnimation() {
+    const scrollSettings = getScrollTriggerSettings();
+
     tl = gsap.timeline({
       scrollTrigger: {
         trigger: '[data-mission-text]',
-        start: 'center bottom',
-        end: 'bottom center',
+        start: scrollSettings.start,
+        end: scrollSettings.end,
         scrub: 0.1,
+        // markers: true,
       },
     });
+
+    // Store the ScrollTrigger instance
+    scrollTriggerInstance = ScrollTrigger.getAll().pop();
 
     $('[data-mission-text] .word').each(function (index) {
       let isHighlight = $(this).closest('[data-highlight-red]').length;
@@ -46,30 +103,25 @@ function initSplit() {
 
   // Function to initialize the split and animation
   function initAnimation() {
-    runSplit();
-    createAnimation();
+    cleanup(); // Clean up existing instances
+    runSplit(); // Create new split
+    createAnimation(); // Create new animation
   }
 
-  // Function to kill the animation and revert split
-  function killAnimation() {
-    if (typeSplit) {
-      typeSplit.revert();
-      typeSplit = null; // Ensure we clear the reference
-      if (tl) {
-        tl.kill();
-        tl = null; // Ensure we clear the timeline reference
-        ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-      }
-    }
-  }
-
-  // Initial check
+  // Initial setup
   initAnimation();
 
-  // Update on window resize
-  window.addEventListener('resize', function () {
-    initAnimation();
+  // Add resize handler with debounce
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      initAnimation();
+    }, 250);
   });
+
+  // Optional: Clean up on component unmount if needed
+  // return cleanup;
 }
 
 function teamSwipers() {

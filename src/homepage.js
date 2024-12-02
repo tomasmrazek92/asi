@@ -478,15 +478,20 @@ function setupTabContainer() {
       const loadPromises = state.videos
         .map((index, video) => {
           return new Promise((resolve) => {
-            if (video.readyState >= 2) {
+            if (video.readyState >= 3) {
+              // HAVE_FUTURE_DATA
               resolve();
               return;
             }
+
+            const events = ['loadedmetadata', 'canplay'];
             const handleLoaded = () => {
-              video.removeEventListener('loadeddata', handleLoaded);
+              events.forEach((event) => video.removeEventListener(event, handleLoaded));
               resolve();
             };
-            video.addEventListener('loadeddata', handleLoaded);
+            events.forEach((event) => video.addEventListener(event, handleLoaded));
+
+            video.muted = true;
             video.load();
           });
         })
@@ -504,6 +509,23 @@ function setupTabContainer() {
   // Videos
   async function playVideo(state, video, index) {
     try {
+      video.muted = true; // Ensure muted for autoplay
+
+      // Wait for metadata if not loaded
+      if (!video.duration) {
+        await new Promise((resolve) => {
+          video.addEventListener('loadedmetadata', resolve, { once: true });
+        });
+      }
+
+      // Ensure video is ready to play
+      if (video.readyState < 3) {
+        // HAVE_FUTURE_DATA
+        await new Promise((resolve) => {
+          video.addEventListener('canplay', resolve, { once: true });
+        });
+      }
+
       const playPromise = video.play();
       if (playPromise !== undefined) {
         await playPromise;
@@ -511,7 +533,7 @@ function setupTabContainer() {
       }
     } catch (error) {
       if (error.name !== 'AbortError') {
-        alert('Error playing video:', error);
+        console.error('Error playing video:', error); // Changed from alert to console.error
         handlePlayError(state, video, index);
       }
     }
@@ -598,8 +620,27 @@ function setupTabContainer() {
   function handlePlayError(state, video, index) {
     $(video).one('touchend click', async function () {
       try {
+        video.muted = true;
+
+        // Wait for metadata if not loaded
+        if (!video.duration) {
+          await new Promise((resolve) => {
+            video.addEventListener('loadedmetadata', resolve, { once: true });
+          });
+        }
+
+        // Ensure video is ready to play
+        if (video.readyState < 3) {
+          await new Promise((resolve) => {
+            video.addEventListener('canplay', resolve, { once: true });
+          });
+        }
+
         await video.play();
-        if (state.isAutoplay) animateProgress(state, index, video);
+        if (state.isAutoplay && video.duration) {
+          // Only animate if we have duration
+          animateProgress(state, index, video);
+        }
       } catch (err) {
         console.error('Failed to play after user interaction:', err);
       }
@@ -607,10 +648,10 @@ function setupTabContainer() {
   }
 
   function animateProgress(state, index, video) {
-    if (!state.isAutoplay) return;
+    if (!state.isAutoplay || !video.duration) return;
 
     const progressBar = state.tabs.eq(index).find('.tabs-item_progress');
-    progressBar.show(); // Ensure progress bar is visible
+    progressBar.show();
 
     gsap.fromTo(
       progressBar,
@@ -620,7 +661,7 @@ function setupTabContainer() {
         duration: video.duration - video.currentTime,
         ease: 'none',
         transformOrigin: 'left center',
-        onComplete: () => progressBar.hide(), // Hide progress bar when animation completes
+        onComplete: () => progressBar.hide(),
       }
     );
   }
