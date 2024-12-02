@@ -511,6 +511,16 @@ function setupTabContainer() {
     try {
       video.muted = true;
 
+      // Reset video if it's already started
+      if (video.currentTime > 0) {
+        video.currentTime = 0;
+      }
+
+      // Set up playing event listener before attempting to play
+      const playingPromise = new Promise((resolve) => {
+        video.addEventListener('playing', resolve, { once: true });
+      });
+
       if (!video.duration) {
         await new Promise((resolve) => {
           video.addEventListener('loadedmetadata', resolve, { once: true });
@@ -523,14 +533,10 @@ function setupTabContainer() {
         });
       }
 
-      const playingPromise = new Promise((resolve) => {
-        video.addEventListener('playing', resolve, { once: true });
-      });
-
       const playPromise = video.play();
       if (playPromise !== undefined) {
         await playPromise;
-        await playingPromise;
+        await playingPromise; // Make sure video is actually playing
         if (state.isAutoplay) animateProgress(state, index, video);
       }
     } catch (error) {
