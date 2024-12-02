@@ -113,11 +113,18 @@ function initSplit() {
 
   // Add resize handler with debounce
   let resizeTimeout;
+  let previousWidth = window.innerWidth;
+
   window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      initAnimation();
-    }, 250);
+    const currentWidth = window.innerWidth;
+
+    if (currentWidth !== previousWidth) {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        initAnimation();
+        previousWidth = currentWidth;
+      }, 250);
+    }
   });
 
   // Optional: Clean up on component unmount if needed
