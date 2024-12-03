@@ -96,6 +96,7 @@ function initLenis() {
 function scrollNav() {
   // Variables
   const navbar = $('.nav');
+  const navWrap = $('.nav_wrap');
   let lastScroll = 0;
 
   // Scroll handler with debouncing
@@ -105,9 +106,11 @@ function scrollNav() {
     const checkOpenState = navbar.find('.w--open').length >= 1;
     if (currentScroll > lastScroll && currentScroll > 50 && !isScrollDisabled && !checkOpenState) {
       // Scroll down - hide navbar
+      gsap.to(navWrap, { pointerEvents: 'none' });
       gsap.to(navbar, { y: '-200%', duration: 1, ease: 'power2.out' });
     } else if (currentScroll < lastScroll) {
       // Scroll up - show navbar
+      gsap.to(navWrap, { pointerEvents: 'auto' });
       gsap.to(navbar, { y: '0%', duration: 1, ease: 'power2.out' });
     }
 
