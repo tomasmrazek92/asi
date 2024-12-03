@@ -156,12 +156,12 @@ function animateHPHero() {
   // Init Reveal
   function initReveal() {
     if (window.innerWidth >= 992) {
-      $('.hero-intro_wrap').css('color', '#333A47');
-      $('.hero-intro_wrap').fadeTo('fast', 1, function () {
+      $('.hp-intro_wrap').css('color', '#333A47');
+      $('.hp-intro_wrap').fadeTo('fast', 1, function () {
         $('.preloader-div').hide();
       });
     } else {
-      $('.hero-intro_wrap').css('opacity', '1');
+      $('.hp-intro_wrap').css('opacity', '1');
       $('.preloader-div').hide();
     }
   }
