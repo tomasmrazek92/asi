@@ -33,7 +33,6 @@ function animateHPHero() {
 
         function setSectionHeight() {
           $(heroIntro).height(heroWrap.height() * 2);
-          console.log(heroWrap.height() * 2);
           videoBoxHeight = splitBox.height();
           videoBoxWidth = splitBox.width();
         }
@@ -455,23 +454,85 @@ function moveImage() {
 
 // #region tabVideos
 function initVideoTabs() {
-  $('.w-tabs').each(setupTabContainer);
+  $('.tabs-wrap').each(function () {
+    setupTabContainer(this);
+  });
 }
 
-function setupTabContainer() {
+function setupTabContainer(el) {
   const state = {
-    tabsContainer: $(this),
-    tabsSection: $(this).closest('.section'),
-    tabs: $(this).find('.tabs-item'),
-    visuals: $(this).find('.tabs-visual'),
-    videos: $(this).find('video'),
-    tabsMenu: $(this).find('.tabs-item').parent(),
-    isAutoplay: true,
-    isAutoplayClick: false,
+    tabsContainer: $(el),
+    tabs: $(el).find('.tabs-item'),
+    visuals: $(el).find('.tabs-visual'),
+    videos: $(el).find('video'),
     currentVideoIndex: 0,
+    swiper: null,
   };
 
   if (!state.videos.length) return;
+
+  function setupSwiper(state) {
+    function initSwiper(state) {
+      // Track current breakpoint state
+      const isMobile = window.innerWidth < 992;
+
+      // If we have an existing swiper, check if we need to reinit
+      if (state.swiper) {
+        // Only reinit if crossing the breakpoint
+        if (state.isMobile !== isMobile) {
+          state.swiper.destroy(true, true);
+        } else {
+          // Same breakpoint, no need to reinit
+          return;
+        }
+      }
+
+      // Update the breakpoint state
+      state.isMobile = isMobile;
+
+      // Define base settings that are common for both breakpoints
+      const baseSettings = {
+        slidesPerView: 1,
+        spaceBetween: 4,
+        centeredSlides: true,
+        on: {
+          slideChange: (swiper) => {
+            switchVideo(state, swiper.realIndex);
+          },
+        },
+      };
+
+      // Add fade effect for desktop
+      if (!state.isMobile) {
+        state.swiper = new Swiper(state.tabsContainer[0], {
+          ...baseSettings,
+          effect: 'fade',
+          fadeEffect: {
+            crossFade: true,
+          },
+          threshold: 20,
+        });
+      } else {
+        // Mobile version without fade effect
+        state.swiper = new Swiper(state.tabsContainer[0], {
+          ...baseSettings,
+          threshold: 5,
+        });
+      }
+    }
+
+    // Initial init
+    initSwiper(state);
+
+    // Handle resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        initSwiper(state);
+      }, 250);
+    });
+  }
 
   async function preloadVideos(state) {
     try {
@@ -493,6 +554,7 @@ function setupTabContainer() {
 
             video.muted = true;
             video.load();
+            video.pause();
           });
         })
         .get();
@@ -502,9 +564,6 @@ function setupTabContainer() {
       console.error('Error preloading videos:', error);
     }
   }
-
-  setupEventListeners(state);
-  setupIntersectionObserver(state);
 
   // Videos
   async function playVideo(state, video, index) {
@@ -533,12 +592,8 @@ function setupTabContainer() {
         });
       }
 
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        await playPromise;
-        await playingPromise; // Make sure video is actually playing
-        if (state.isAutoplay) animateProgress(state, index, video);
-      }
+      video.play();
+      animateProgress(state, index, video);
     } catch (error) {
       if (error.name !== 'AbortError') {
         console.error('Error playing video:', error);
@@ -550,13 +605,12 @@ function setupTabContainer() {
       this.pause();
     });
 
-    if (state.isAutoplay) {
-      state.tabs.each(function () {
-        const progressBar = $(this).find('.tabs-item_progress');
-        gsap.killTweensOf(progressBar);
-      });
-    }
+    state.tabs.each(function () {
+      const progressBar = $(this).find('.tabs-item_progress');
+      gsap.killTweensOf(progressBar);
+    });
   }
+
   function resumeVideo(state) {
     const video = state.videos.eq(state.currentVideoIndex).get(0);
     if (!video) return;
@@ -564,16 +618,8 @@ function setupTabContainer() {
     playVideo(state, video, state.currentVideoIndex);
   }
   function handleVideoEnd(state, index) {
-    if (state.isAutoplay) {
-      $('.tabs-item_progress').hide();
-      const nextIndex = (index + 1) % state.tabs.length;
-      state.isAutoplayClick = true;
-      state.switchObserver(nextIndex); // Add this line to switch observer before changing tab
-      state.tabs.eq(nextIndex).trigger('switchTab');
-      state.isAutoplayClick = false;
-    }
+    state.swiper.slideTo((index + 1) % state.tabs.length);
   }
-
   function switchVideo(state, index) {
     state.currentVideoIndex = index;
     pauseAllVideos(state);
@@ -582,9 +628,7 @@ function setupTabContainer() {
     if (!video) return;
 
     video.currentTime = 0;
-
     playVideo(state, video, index);
-    state.switchObserver(index);
   }
 
   // Events
@@ -592,58 +636,15 @@ function setupTabContainer() {
     // Video end handlers
     state.videos.each((index, video) => {
       $(video).on('ended', () => {
-        console.log('Video ended', index); // Add this debug line
         handleVideoEnd(state, index);
       });
     });
 
-    // Tab click handlers
-    state.tabs.on('click', (event) => {
-      event.stopPropagation();
-      handleTabClick(state, $(event.currentTarget).index());
-    });
-
-    state.tabs.on('switchTab', function () {
-      $(this).click();
+    state.tabs.on('click', function (event) {
+      let index = $(event.currentTarget).index();
+      state.swiper.slideTo(index);
     });
   }
-  function handleTabClick(state, index, manual = true) {
-    if (manual && state.isAutoplay && !state.isAutoplayClick) {
-      disableAutoplay(state);
-    }
-    switchVideo(state, index);
-  }
-
-  function disableAutoplay(state) {
-    state.isAutoplay = false;
-    state.videos.each(function () {
-      this.loop = true;
-    });
-    state.tabs.each(function () {
-      $(this).find('.tabs-item_progress').hide();
-    });
-  }
-
-  function animateProgress(state, index, video) {
-    if (!state.isAutoplay || !video.duration) return;
-
-    const progressBar = state.tabs.eq(index).find('.tabs-item_progress');
-    progressBar.show();
-
-    gsap.fromTo(
-      progressBar,
-      { scaleX: video.currentTime / video.duration },
-      {
-        scaleX: 1,
-        duration: video.duration - video.currentTime,
-        ease: 'none',
-        transformOrigin: 'left center',
-        onComplete: () => progressBar.hide(),
-      }
-    );
-  }
-
-  // Init
   function setupIntersectionObserver(state) {
     let hasPreloaded = false;
 
@@ -671,6 +672,37 @@ function setupTabContainer() {
       observer.observe(state.visuals[index]);
     };
   }
+  function animateProgress(state, index, video) {
+    if (!video.duration) return;
+
+    let activeClass = 'w--current';
+    state.tabs.removeClass(activeClass);
+
+    // Clear
+    $('.tabs-item_progress').hide();
+
+    const activeTab = state.tabs.eq(index);
+    const progressBar = activeTab.find('.tabs-item_progress');
+    progressBar.show();
+    activeTab.addClass(activeClass);
+
+    gsap.fromTo(
+      progressBar,
+      { scaleX: video.currentTime / video.duration },
+      {
+        scaleX: 1,
+        duration: video.duration - video.currentTime,
+        ease: 'none',
+        transformOrigin: 'left center',
+        onComplete: () => progressBar.hide(),
+      }
+    );
+  }
+
+  // Init
+  setupSwiper(state);
+  setupEventListeners(state);
+  setupIntersectionObserver(state);
 }
 
 // #endregion
