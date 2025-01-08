@@ -627,7 +627,6 @@ function setupTabContainer(el) {
     const video = state.videos.eq(index).get(0);
     if (!video) return;
 
-    video.currentTime = 0;
     playVideo(state, video, index);
   }
 
@@ -656,8 +655,11 @@ function setupTabContainer(el) {
               hasPreloaded = true;
               preloadVideos(state);
             }
-            resumeVideo(state);
+            // Only resume the current video
+            const currentIndex = state.swiper ? state.swiper.realIndex : 0;
+            resumeVideo(state, currentIndex);
           } else {
+            // When section leaves viewport, pause all videos
             pauseAllVideos(state);
           }
         });
@@ -665,13 +667,15 @@ function setupTabContainer(el) {
       { threshold: 0.2 }
     );
 
-    observer.observe(state.visuals[0]);
+    // Only observe the container element instead of individual videos
+    observer.observe(state.tabsContainer[0]);
 
-    state.switchObserver = (index) => {
-      observer.disconnect();
-      observer.observe(state.visuals[index]);
+    // We don't need switchObserver anymore since we're observing the container
+    state.switchObserver = () => {
+      // Either remove this entirely or keep it empty for compatibility
     };
   }
+
   function animateProgress(state, index, video) {
     if (!video.duration) return;
 
