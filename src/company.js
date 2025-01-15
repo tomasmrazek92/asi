@@ -198,7 +198,11 @@ $(document).ready(function () {
         // observe changes to the element's size and position
         const resizeObserver = new ResizeObserver(recalculatePosition);
         resizeObserver.observe(document.body);
-        window.lenisInstance.on('scroll', recalculatePosition);
+        if ('ontouchstart' in window) {
+          window.addEventListener('scroll', recalculatePosition);
+        } else {
+          window.lenisInstance.on('scroll', recalculatePosition);
+        }
       },
     });
   };
