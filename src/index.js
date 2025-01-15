@@ -40,7 +40,6 @@ function trggerExternalLinks() {
 }
 
 // #region Lenis
-
 function initLenis() {
   if (Webflow.env('editor') === undefined) {
     lenis = new Lenis({
@@ -55,6 +54,7 @@ function initLenis() {
       requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
+    window.lenisInstance = lenis;
   }
   $('[data-lenis-start]').on('click', function () {
     lenis.start();

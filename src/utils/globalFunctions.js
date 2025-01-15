@@ -45,3 +45,55 @@ export const createSwiper = (componentSelector, swiperSelector, classSelector, o
     swipers[classSelector][index] = swiper;
   });
 };
+
+export const initializeSnappySnapItems = ({
+  itemsContainerId,
+  getTopOffset,
+  getItemOffset,
+  onInit,
+}) => {
+  const itemsContainer = document.querySelector(`[data-rs-container='${itemsContainerId}']`);
+
+  const items = itemsContainer.querySelectorAll('[data-rs-item]');
+
+  const childElements = Array.from(items);
+  const childElementsCount = childElements.length;
+
+  const recalculatePosition = () => {
+    const itemOffset = getItemOffset?.() || 100;
+    const topOffset = getTopOffset?.() || 0;
+    const itemsContainerRect = itemsContainer.getBoundingClientRect();
+    const lastItemHeight = childElements[childElementsCount - 1].getBoundingClientRect().height;
+    const lastItemContentRect = childElements[childElementsCount - 1]
+      .querySelector('[data-rs-item-content]')
+      .getBoundingClientRect();
+
+    const totalSnappedHeightCount = (childElementsCount - 1) * itemOffset + lastItemHeight;
+
+    const mainContainerBottomOffset = -Math.max(
+      0,
+      totalSnappedHeightCount - itemsContainerRect.bottom + topOffset
+    );
+
+    childElements.forEach((childElement, index) => {
+      const { top } = childElement.getBoundingClientRect();
+      const childElementContent = childElement.querySelector('[data-rs-item-content]');
+
+      const thisItemOffset = itemOffset * index + topOffset;
+
+      if (top < thisItemOffset) {
+        childElementContent.style.transform = `translateY(${
+          -top + thisItemOffset + mainContainerBottomOffset
+        }px)`;
+      } else {
+        childElementContent.style.transform = `translateY(0px)`;
+      }
+    });
+  };
+
+  // initial calculation
+  recalculatePosition();
+  onInit?.({
+    recalculatePosition,
+  });
+};

@@ -1,3 +1,5 @@
+import { initializeSnappySnapItems } from './utils/globalFunctions';
+
 let url = 'https://api.ashbyhq.com/posting-api/job-board/airspace-intelligence.com';
 
 if (window.location.pathname === '/careers') {
@@ -82,3 +84,41 @@ if (window.location.pathname === '/careers/role') {
     })
     .catch((error) => console.error('Error fetching data:', error));
 }
+
+$(document).ready(function () {
+  let isInitialize = false;
+  const htmlEl = document.documentElement;
+
+  const initialize = (container) => {
+    if (isInitialize || typeof window.lenisInstance === 'undefined') return;
+    isInitialize = true;
+    initializeSnappySnapItems({
+      itemsContainerId: 'keys',
+      getTopOffset: () => {
+        return parseInt($('.nav_wrap').css('height'));
+      },
+      getItemOffset: () => {
+        return parseInt($('[data-rs-item-offset]').css('height'));
+      },
+      onInit: ({ recalculatePosition }) => {
+        // observe changes to the element's size and position
+        const resizeObserver = new ResizeObserver(recalculatePosition);
+        resizeObserver.observe(document.body);
+        window.lenisInstance.on('scroll', recalculatePosition);
+      },
+    });
+  };
+
+  let observer = new MutationObserver(function (mutations) {
+    if (htmlEl.className.includes('lenis')) {
+      initialize();
+    }
+  });
+
+  observer.observe(htmlEl, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+
+  initialize();
+});

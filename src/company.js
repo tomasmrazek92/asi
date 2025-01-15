@@ -1,3 +1,5 @@
+import { initializeSnappySnapItems } from './utils/globalFunctions';
+
 function initSplit(els) {
   $(els).each(function () {
     let typeSplit;
@@ -173,7 +175,46 @@ function teamSwipers() {
   });
 }
 
+// #region stickySection
+
+// #endregion
+
 $(document).ready(function () {
+  let isInitialize = false;
+  const htmlEl = document.documentElement;
+
+  const initialize = (container) => {
+    if (isInitialize || typeof window.lenisInstance === 'undefined') return;
+    isInitialize = true;
+    initializeSnappySnapItems({
+      itemsContainerId: 'offices',
+      getTopOffset: () => {
+        return parseInt($('.nav_wrap').css('height'));
+      },
+      getItemOffset: () => {
+        return parseInt($('[data-rs-item-offset]').css('height'));
+      },
+      onInit: ({ recalculatePosition }) => {
+        // observe changes to the element's size and position
+        const resizeObserver = new ResizeObserver(recalculatePosition);
+        resizeObserver.observe(document.body);
+        window.lenisInstance.on('scroll', recalculatePosition);
+      },
+    });
+  };
+
+  let observer = new MutationObserver(function (mutations) {
+    if (htmlEl.className.includes('lenis')) {
+      initialize();
+    }
+  });
+
+  observer.observe(htmlEl, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+
+  initialize();
   initSplit('[data-animation-wrap]');
   teamSwipers();
 });
