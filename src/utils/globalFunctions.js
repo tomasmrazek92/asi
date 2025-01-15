@@ -75,20 +75,31 @@ export const initializeSnappySnapItems = ({
       totalSnappedHeightCount - itemsContainerRect.bottom + topOffset
     );
 
+    let totalItemsHeight = 0;
+
     childElements.forEach((childElement, index) => {
-      const { top } = childElement.getBoundingClientRect();
-      const childElementContent = childElement.querySelector('[data-rs-item-content]');
+      const childRect = childElement.getBoundingClientRect();
+      totalItemsHeight += childRect.height;
+      const { top } = childRect;
 
       const thisItemOffset = itemOffset * index + topOffset;
-
-      if (top < thisItemOffset) {
-        childElementContent.style.transform = `translateY(${
-          -top + thisItemOffset + mainContainerBottomOffset
-        }px)`;
+      childElement.style.width = '100%';
+      if (mainContainerBottomOffset < 0) {
+        itemsContainer.style.position = `relative`;
+        childElement.style.position = 'absolute';
+        childElement.style.top = 'auto';
+        childElement.style.bottom = `${
+          totalSnappedHeightCount - childRect.height - thisItemOffset
+        }px`;
       } else {
-        childElementContent.style.transform = `translateY(0px)`;
+        itemsContainer.style.position = `static`;
+        childElement.style.position = 'sticky';
+        childElement.style.top = `${thisItemOffset - mainContainerBottomOffset}px`;
+        childElement.style.bottom = 'auto';
       }
     });
+
+    itemsContainer.style.height = `${totalItemsHeight}px`;
   };
 
   // initial calculation
