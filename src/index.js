@@ -47,7 +47,7 @@ function initLenis() {
       wheelMultiplier: 0.7,
       gestureOrientation: 'vertical',
       normalizeWheel: false,
-      smoothTouch: true,
+      smoothTouch: false,
     });
     function raf(time) {
       lenis.raf(time);
