@@ -89,12 +89,12 @@ export const initializeSnappySnapItems = ({
         childElement.style.position = 'absolute';
         childElement.style.top = 'auto';
         childElement.style.bottom = `${
-          totalSnappedHeightCount - childRect.height - thisItemOffset
+          totalSnappedHeightCount - childRect.height - thisItemOffset + topOffset
         }px`;
       } else {
         itemsContainer.style.position = `static`;
         childElement.style.position = 'sticky';
-        childElement.style.top = `${thisItemOffset - mainContainerBottomOffset}px`;
+        childElement.style.top = `${thisItemOffset}px`;
         childElement.style.bottom = 'auto';
       }
     });
